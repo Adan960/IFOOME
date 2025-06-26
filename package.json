@@ -1,0 +1,30 @@
+{
+  "name": "ifoome",
+  "version": "1.0.0",
+  "description": "## INSTALAÇÃO",
+  "main": "index.js",
+  "scripts": {
+    
+    "start": "run-p start:backend start:frontend -s",
+    "start:backend": "cd backend && npm start -s",
+    "start:frontend": "cd frontend && npm start -s",
+
+    "build": "run-s build:backend build:frontend -s",
+    "build:backend": "cd backend && npm run build -s",
+    "build:frontend": "cd frontend && npm run build -s",
+
+    "test": "run-p test:backend test:frontend -s",
+    "test:backend": "cd backend && npm test -s",
+    "test:frontend": "cd frontend && npm test -s",
+
+    "dev": "run-p dev:backend dev:frontend -s",
+    "dev:backend": "cd backend && npm run dev -s",
+    "dev:frontend": "cd frontend && npm run dev -s"
+
+  },
+  "author": "Cauã Rocha",
+  "license": "ISC",
+  "dependencies": {
+    "npm-run-all": "^4.1.5"
+  }
+}

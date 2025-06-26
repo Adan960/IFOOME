@@ -1,0 +1,14 @@
+{
+  "name": "frontend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "",
+    "build": "",
+    "test": "",
+    "start": ""
+  },
+  "author": "Cauã Rocha",
+  "license": "ISC",
+  "description": ""
+}
