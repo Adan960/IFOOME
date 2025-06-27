@@ -14,6 +14,12 @@ Em seguida basta clicar no link que aparecerá no terminal para ser direcionado 
 
 ## DOCKER
 
+Para iniciar o Database é necessário que inicie o docker e para isso basta digitar os comandos abaixo:
+
+    docker compose up -d
+    docker compose ls
+    docker compose down
+
 ## TESTES
 
 Para rodar o switch de testes basta colar no terminal o comando abaixo:

@@ -1,0 +1,18 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:17
+    container_name: db-postgres-ifoome
+    restart: always
+    environment:
+      POSTGRES_USER: ${DB_User}
+      POSTGRES_PASSWORD: ${DB_Password}
+      POSTGRES_DB: ${DB_Name}
+    ports:
+      - "5431:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+volumes:
+  pgdata:

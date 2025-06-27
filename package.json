@@ -19,7 +19,11 @@
 
     "dev": "run-p dev:backend dev:frontend -s",
     "dev:backend": "cd backend && npm run dev -s",
-    "dev:frontend": "cd frontend && npm run dev -s"
+    "dev:frontend": "cd frontend && npm run dev -s",
+
+    "install": "run-p install:backend install:frontend -s",
+    "install:backend": "cd backend && npm i -s",
+    "install:frontend": "cd frontend && npm i -s"
 
   },
   "author": "Cauã Rocha",
