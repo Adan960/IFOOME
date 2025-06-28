@@ -1,4 +1,3 @@
--- Cria a tabela usuarios
 CREATE TABLE IF NOT EXISTS usuarios (
     id SERIAL PRIMARY KEY,
     email VARCHAR(255) NOT NULL UNIQUE,
@@ -6,9 +5,8 @@ CREATE TABLE IF NOT EXISTS usuarios (
     role INT NOT NULL
 );
 
--- Cria a tabela pedidos
 CREATE TABLE IF NOT EXISTS pedidos (
-    id SERIAL PRIMARY KEY,
+    id BIGSERIAL PRIMARY KEY,
     preco INT NOT NULL,
     quantidade INT NOT NULL,
     nome VARCHAR(60) NOT NULL,
