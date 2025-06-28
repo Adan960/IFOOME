@@ -1,15 +1,20 @@
 import express from 'express';
+import bodyParser from 'body-parser';
+
 import dbConfig from './config/database';
+import auth from './modules/auth/auth';
+import user from './modules/users/user';
 
 const app = express();
 
+app.use(bodyParser.urlencoded())
+app.use(bodyParser.json());
 
-dbConfig()
+app.use("/",user);
+app.use("/",auth);
 
-app.get("/backend/", (_, res) => {
-    res.send("Hello world");
-})
+dbConfig();
 
-app.listen(process.env.PORT, () => {
+app.listen(process.env.PORT, ():void => {
     console.log(`Servidor rodando em http://localhost:${process.env.PORT}/backend/`);
 })
