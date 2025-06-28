@@ -13,12 +13,6 @@ export default async function connect():Promise<void> {
     
     try {
         const result = await client.query('SELECT $1::text as message', ['Hello world!']);
-
-        const res = await client.query(`
-                DROP DATABASE teste;
-            `);
-
-        console.log(res.rows[0]);
     } catch (err) {
         console.error(err);
     } finally {
