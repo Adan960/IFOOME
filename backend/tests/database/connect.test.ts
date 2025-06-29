@@ -33,7 +33,7 @@ describe('conectar com o DB', () => {
     expect(result).toEqual(mockResult);
   });
 
-  it('deve liberar client mesmo com erro', async () => {
+  test('deve liberar client mesmo com erro', async () => {
     const sql = 'SQL inválido';
     const params: any[] = [];
     const fakeError = new Error('Erro de conexão');

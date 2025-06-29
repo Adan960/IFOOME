@@ -11,9 +11,8 @@ router.post("/backend/criarLogin",(req,res):void => {
     database(
         'INSERT INTO usuarios(email, senha, role) VALUES($1, $2, $3) RETURNING *',
         [email, senha, 0]
-    );
-    
-    res.statusCode = 200;
+    )
+    res.sendStatus(200);
 });
  
 export default router;
