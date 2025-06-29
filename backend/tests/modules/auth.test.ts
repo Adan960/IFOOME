@@ -8,8 +8,15 @@ function fail(reason?: string) {
   throw new Error(reason);
 }
 
-// Esta função será executada uma única vez após todos os testes neste arquivo.
+// Esta função será executada uma única vez antes de todos os testes neste arquivo.
+beforeAll(async () => {
+    await database(`DELETE FROM usuarios WHERE email = $1;`, ["teste1234@gmail.com"])
+    await database(`DELETE FROM usuarios WHERE email = $1;`, ["teste1234"])
+    await null; // cuido disso depois
+});
+
 afterAll(async () => {
+    await database(`DELETE FROM usuarios WHERE email = $1;`, ["teste1234@gmail.com"])
     await database(`DELETE FROM usuarios WHERE email = $1;`, ["teste1234"])
     await null; // cuido disso depois
     if (dbPool) {
@@ -20,7 +27,7 @@ afterAll(async () => {
 describe("Cadastro de usuário", () => {
     test("Deve cadastrar um usuario com sucesso",() => {
         return request.post("/backend/criarLogin").send({
-            "email": "teste1234",
+            "email": "teste1234@gmail.com",
             "senha": "1234"
         }).then((res: any) => {
             expect(res.statusCode).toEqual(201);
@@ -29,15 +36,20 @@ describe("Cadastro de usuário", () => {
         })
     });
 
-    test("Deve retornar o erro 409 pelo email já existir",() => {
-        try{
-            database(`INSERT INTO usuarios(email, senha, role) VALUES($1, $2, $3);`, ["teste1234","1234",0]);
-        } catch (err: any){
-            console.log(err);
-            fail();
-        }
+    test("Deve retornar o erro 400 pelo formato ser invalido",() => {
         return request.post("/backend/criarLogin").send({
             "email": "teste1234",
+            "senha": "1234"
+        }).then((res: any) => {
+            expect(res.statusCode).toEqual(400);
+        }).catch((err: string) => {
+            fail(err);
+        })
+    });
+
+    test("Deve retornar o erro 409 pelo email já existir",() => {
+        return request.post("/backend/criarLogin").send({
+            "email": "teste1234@gmail.com",
             "senha": "1234"
         }).then((res: any) => {
             expect(res.statusCode).toEqual(409);
