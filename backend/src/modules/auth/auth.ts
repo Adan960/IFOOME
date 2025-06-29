@@ -1,16 +1,16 @@
 import express from 'express';
-import bodyParser from 'body-parser';
 
-const app = express();
+import database from '../../database/auth';
+
 const router = express.Router();
 
-app.use(bodyParser.urlencoded())
-app.use(bodyParser.json());
+router.post("/backend/criarLogin",(req,res):void => {
+    const email: string = req.body.email;
+    const senha: string = req.body.senha;
 
-router.post("/backend/teste",(req,res):void => {
-    const nome = req.body.nome;
-    
-    res.send("Olá " + nome);
+    database.criarLogin(email, senha);
+
+    res.send(email + senha);
 });
  
 export default router;
