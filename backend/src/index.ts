@@ -1,8 +1,8 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 
-import auth from './modules/auth/auth';
-import user from './modules/users/user';
+import auth from './modules/auth';
+import user from './modules/user';
 
 const app = express();
 

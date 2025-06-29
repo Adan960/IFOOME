@@ -11,7 +11,7 @@ const pool = new Pool({
     idleTimeoutMillis: 30000 // 30 segundos de inatividade antes de fechar
 });
 
-export default async function conectar(sql: string, params?: any[]) {
+export default async function conectar(sql: string, params?: any[]):Promise<any> {
     const client = await pool.connect();
     try {
         return await client.query(sql, params);
