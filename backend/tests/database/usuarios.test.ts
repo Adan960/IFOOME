@@ -1,4 +1,4 @@
-import database, { dbPool } from '../../src/config/database'; // Ajuste conforme seu export
+import database, { dbPool } from '../../src/config/database';
 
 // Esta função será executada uma única vez após todos os testes neste arquivo.
 afterAll(async () => {
