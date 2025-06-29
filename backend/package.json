@@ -1,15 +1,15 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "server.js",
   "directories": {
     "test": "tests"
   },
   "scripts": {
-    "dev": "ts-node-dev --respawn --transpile-only --env-file ../.env src/index.ts",
+    "dev": "ts-node-dev --respawn --transpile-only --env-file ../.env src/server.ts",
     "build": "tsc",
     "test": "jest",
-    "start": "node --env-file ../.env dist/index.js"
+    "start": "node --env-file ../.env dist/server.js"
   },
   "keywords": [],
   "author": "Cauã Rocha",

@@ -12,6 +12,4 @@ app.use(bodyParser.json());
 app.use("/",user);
 app.use("/",auth);
 
-app.listen(process.env.PORT, ():void => {
-    console.log(`Servidor rodando em http://localhost:${process.env.PORT}/backend/`);
-})
+export default app;
