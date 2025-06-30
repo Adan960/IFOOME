@@ -58,3 +58,49 @@ describe("Cadastro de usuário", () => {
         })
     });
 });
+
+describe("Login de usuário",() => {
+    test("Deve logar com sucesso",() => {
+        return request.post("/backend/login").send({
+            "email": "teste1234@gmail.com",
+            "senha": "1234"
+        }).then((res: any) => {
+            expect(res.statusCode).toEqual(200);
+        }).catch((err: string) => {
+            fail(err);
+        })
+    });
+
+    test("Deve retornar o erro 400 pelo formato ser invalido",() => {
+        return request.post("/backend/login").send({
+            "email": "teste1234",
+            "senha": "1234"
+        }).then((res: any) => {
+            expect(res.statusCode).toEqual(400);
+        }).catch((err: string) => {
+            fail(err);
+        })
+    });
+
+    test("Deve retornar o erro 404 pelo login não ter sido encontrado",() => {
+        return request.post("/backend/login").send({
+            "email": "teste12s@gmail.com",
+            "senha": "12345"
+        }).then((res: any) => {
+            expect(res.statusCode).toEqual(404);
+        }).catch((err: string) => {
+            fail(err);
+        })
+    });
+
+    test("Deve retornar o erro 403 pela senha está errada",() => {
+        return request.post("/backend/login").send({
+            "email": "teste1234@gmail.com",
+            "senha": "12345"
+        }).then((res: any) => {
+            expect(res.statusCode).toEqual(403);
+        }).catch((err: string) => {
+            fail(err);
+        })
+    });
+});
