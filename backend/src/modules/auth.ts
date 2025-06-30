@@ -1,5 +1,5 @@
-const express = require('express');
-const bcrypt = require('bcrypt');
+import express from 'express';
+import bcrypt from 'bcrypt';
 
 import database from '../config/database';
 
