@@ -26,7 +26,7 @@ afterAll(async () => {
 
 describe("Cadastro de usuário", () => {
     test("Deve cadastrar um usuario com sucesso",() => {
-        return request.post("/backend/criarLogin").send({
+        return request.post("/backend/createLogin").send({
             "email": "teste1234@gmail.com",
             "senha": "1234"
         }).then((res: any) => {
@@ -37,7 +37,7 @@ describe("Cadastro de usuário", () => {
     });
 
     test("Deve retornar o erro 400 pelo formato ser invalido",() => {
-        return request.post("/backend/criarLogin").send({
+        return request.post("/backend/createLogin").send({
             "email": "teste1234",
             "senha": "1234"
         }).then((res: any) => {
@@ -48,7 +48,7 @@ describe("Cadastro de usuário", () => {
     });
 
     test("Deve retornar o erro 409 pelo email já existir",() => {
-        return request.post("/backend/criarLogin").send({
+        return request.post("/backend/createLogin").send({
             "email": "teste1234@gmail.com",
             "senha": "1234"
         }).then((res: any) => {

@@ -8,7 +8,7 @@
   "scripts": {
     "dev": "ts-node-dev --respawn --transpile-only --env-file ../.env src/server.ts",
     "build": "tsc",
-    "test": "node --env-file ../.env node_modules/.bin/jest",
+    "test": "dotenv -e ../.env -- node_modules/.bin/jest",
     "start": "node --env-file ../.env dist/server.js"
   },
   "keywords": [],
@@ -19,6 +19,7 @@
     "@types/bcrypt": "^5.0.2",
     "@types/express": "^5.0.3",
     "@types/jest": "^30.0.0",
+    "dotenv-cli": "^8.0.0",
     "jest": "^30.0.3",
     "supertest": "^7.1.1",
     "ts-jest": "^29.4.0",

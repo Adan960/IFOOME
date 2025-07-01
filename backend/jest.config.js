@@ -1,4 +1,3 @@
-// backend/jest.config.js
 module.exports = {
   preset: 'ts-jest',          // Transpile TypeScript
   testEnvironment: 'node',    // Ambiente Node.js (para backend)

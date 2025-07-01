@@ -8,69 +8,61 @@ const router = express.Router();
 const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 async function hash(senha: string): Promise<string> {
-    const saltRounds = 12;
+    const saltRounds: number = 12;
     const hash = await bcrypt.hash(senha, saltRounds);
     return hash;
 }
 
-async function verificarSenha(senha: string, hash: string): Promise<boolean> {
-    if(await bcrypt.compare(senha, hash)) {
-        return true
-    } else {
-        return false;
-    }
+async function checkPassword(senha: string, hash: string): Promise<boolean> {
+    return await bcrypt.compare(senha, hash);
 }
 
-async function buscarUsuarioEmail(email: string): Promise<object> {
+async function findUserByEmail(email: string): Promise<undefined | User> {
     const tst = await database('SELECT * FROM usuarios WHERE email = $1;',[email]);
     return await tst.rows[0];
 };
 
-router.post("/backend/criarLogin",(req: any,res: any):void => {
+type User = {
+    email: string,
+    senha: string
+};
+
+
+router.post("/backend/createLogin",async (req: any,res: any):Promise<void> => {
     const email: string = req.body.email;
     const senha: string = req.body.senha;
 
     if(regex.test(email)) {
-        buscarUsuarioEmail(email).then((user: object | undefined) => {
-            if(typeof(user) == "undefined") {
-                hash(senha).then((hash) => {
-                    database(
-                        'INSERT INTO usuarios(email, senha, role) VALUES($1, $2, $3);',
-                        [email, hash, 0]
-                    );
-                    res.sendStatus(201);
-                })
-            }else {
-                res.sendStatus(409);
-            }
-        }).catch((err: object) => {
-            console.log(err);
-        });
+        if(typeof(await findUserByEmail(email)) == "undefined") {
+            const passwordHash: string = await hash(senha);
+            database(
+                'INSERT INTO usuarios(email, senha, role) VALUES($1, $2, $3);',
+                [email, passwordHash, 0]
+            );
+            res.sendStatus(201);
+        } else {
+            res.sendStatus(409);
+        }
     } else {
         res.sendStatus(400);
     }
 });
 
-router.post("/backend/login",(req: any,res: any):void => {
-    const email: string = req.body.email;
-    const senha: string = req.body.senha;
+router.post("/backend/login",async (req: any,res: any):Promise<void> => {
+    const email: string = await req.body.email;
+    const senha: string = await req.body.senha;
 
     if(regex.test(email)) {
-        buscarUsuarioEmail(email).then((user: any | undefined) => {
-            if(typeof(user) != "undefined") {
-                verificarSenha(senha, user.senha).then((valido) => {
-                    if(valido) {
-                        res.sendStatus(200);
-                    } else {
-                        res.sendStatus(403);
-                    }
-                });
+        const user: User | undefined = await findUserByEmail(email);
+        if(typeof(user) != "undefined") {
+            if(await checkPassword(senha, user.senha)) {
+                res.sendStatus(200);
             } else {
-                res.sendStatus(404);
+                res.sendStatus(403);
             }
-        }).catch((err: object) => {
-            console.log(err);
-        });
+        } else {
+            res.sendStatus(404);
+        }
     } else {
         res.sendStatus(400);
     }
