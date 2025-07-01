@@ -1,8 +1,11 @@
 import database, { dbPool } from '../../src/config/database';
 import app from '../../src/app';
+import jwt from 'jsonwebtoken';
 
 const supertest = require('supertest');
 const request = supertest(app);
+
+const jwtSecret: string = process.env.JWT_SECRET || "";
 
 function fail(reason?: string) {
   throw new Error(reason);
@@ -65,7 +68,15 @@ describe("Login de usuário",() => {
             "email": "teste1234@gmail.com",
             "senha": "1234"
         }).then((res: any) => {
-            expect(res.statusCode).toEqual(200);
+            database(`SELECT * FROM usuarios WHERE email = $1;`, ["teste1234@gmail.com"]).then((data) => {
+                jwt.verify(res.body.token, jwtSecret, function(err: any, decoded: any) {
+                    expect(res.statusCode).toEqual(200);
+                    expect(decoded.id).toEqual(data.rows[0].id);
+                    expect(decoded.role).toEqual(data.rows[0].role);      
+                });
+            }).catch((err) => {
+                fail(err)
+            })
         }).catch((err: string) => {
             fail(err);
         })
