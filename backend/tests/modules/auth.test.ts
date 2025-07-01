@@ -29,7 +29,7 @@ afterAll(async () => {
 
 describe("Cadastro de usuário", () => {
     test("Deve cadastrar um usuario com sucesso",() => {
-        return request.post("/backend/createLogin").send({
+        return request.post("/backend/criarLogin").send({
             "email": "teste1234@gmail.com",
             "senha": "1234"
         }).then((res: any) => {
@@ -39,8 +39,17 @@ describe("Cadastro de usuário", () => {
         })
     });
 
+    test("Deve retornar o erro 412 por não haver requisição",() => {
+        return request.post("/backend/criarLogin").send({
+        }).then((res: any) => {
+            expect(res.statusCode).toEqual(412);
+        }).catch((err: string) => {
+            fail(err);
+        })
+    });
+
     test("Deve retornar o erro 400 pelo formato ser invalido",() => {
-        return request.post("/backend/createLogin").send({
+        return request.post("/backend/criarLogin").send({
             "email": "teste1234",
             "senha": "1234"
         }).then((res: any) => {
@@ -51,7 +60,7 @@ describe("Cadastro de usuário", () => {
     });
 
     test("Deve retornar o erro 409 pelo email já existir",() => {
-        return request.post("/backend/createLogin").send({
+        return request.post("/backend/criarLogin").send({
             "email": "teste1234@gmail.com",
             "senha": "1234"
         }).then((res: any) => {
@@ -69,7 +78,7 @@ describe("Login de usuário",() => {
             "senha": "1234"
         }).then((res: any) => {
             database(`SELECT * FROM usuarios WHERE email = $1;`, ["teste1234@gmail.com"]).then((data) => {
-                jwt.verify(res.body.token, jwtSecret, function(err: any, decoded: any) {
+                jwt.verify(res.text, jwtSecret, function(err: any, decoded: any) {
                     expect(res.statusCode).toEqual(200);
                     expect(decoded.id).toEqual(data.rows[0].id);
                     expect(decoded.role).toEqual(data.rows[0].role);      
