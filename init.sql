@@ -34,3 +34,5 @@ CREATE TABLE IF NOT EXISTS avaliacoes (
         ON DELETE CASCADE
         ON UPDATE CASCADE
 );
+
+INSERT INTO produtos (nome, preco, tipo) VALUES('coxinha', 250, 'salgado');

@@ -14,7 +14,7 @@ jest.mock('pg', () => {
   return { Pool: jest.fn(() => mPool) };
 });
 
-describe('conectar com o DB', () => {
+describe('conectar com o Postgress', () => {
   test('deve se conectar e executar query', async () => {
     const sql = 'SELECT 1';
     const params: any[] = [];
@@ -54,5 +54,4 @@ describe('conectar com o DB', () => {
 
     consoleSpy.mockRestore(); // restaura console.log depois
   });
-
 });

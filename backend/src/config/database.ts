@@ -4,7 +4,7 @@ const pool = new Pool({
     user: process.env.DB_User,
     password: process.env.DB_Password,
     host: process.env.DB_Host,
-    port: process.env.PG_Port,
+    port: process.env.DB_Port,
     database: process.env.DB_Name,
     max: 3, // Número máximo de conexões
     connectionTimeoutMillis: 30000,
