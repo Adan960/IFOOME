@@ -15,7 +15,6 @@ function fail(reason?: string) {
 afterAll(async () => {
     await redis.flushDb();
     await redis.quit();
-    await null; // cuido disso depois
     if (dbPool) {
         await dbPool.end();
     }

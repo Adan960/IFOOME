@@ -59,6 +59,13 @@ router.post("/backend/login",async (req: any,res: any):Promise<void> => {
 });
 
 
+type User = {
+    id: number,
+    email: string,
+    senha: string,
+    role: number
+};
+
 async function hash(password: string): Promise<string> {
     const saltRounds: number = 12;
     const hash = await bcrypt.hash(password, saltRounds);
@@ -77,12 +84,5 @@ async function findUserByEmail(email: string): Promise<undefined | User> {
 function createToken(id: number, role: number):string {
     return jwt.sign({id: id, role: role}, jwtSecret);
 }
-
-type User = {
-    id: number,
-    email: string,
-    senha: string,
-    role: number
-};
  
 export default router;

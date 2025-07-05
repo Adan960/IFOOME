@@ -12,7 +12,6 @@ function userAuth(req: any, res: any, next: any): void {
                 } else {
                     res.sendStatus(401);
                 }
-                return
             }); 
         } else {
             res.sendStatus(400);

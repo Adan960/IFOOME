@@ -15,14 +15,12 @@ function fail(reason?: string) {
 beforeAll(async () => {
     await database(`DELETE FROM usuarios WHERE email = $1;`, ["teste1234@gmail.com"])
     await database(`DELETE FROM usuarios WHERE email = $1;`, ["teste1234"])
-    await null; // cuido disso depois
 });
 
 afterAll(async () => {
     await redis.quit();
     await database(`DELETE FROM usuarios WHERE email = $1;`, ["teste1234@gmail.com"])
     await database(`DELETE FROM usuarios WHERE email = $1;`, ["teste1234"])
-    await null; // cuido disso depois
     if (dbPool) {
         await dbPool.end();
     }
@@ -79,7 +77,7 @@ describe("Login de usuário",() => {
             "senha": "1234"
         }).then((res: any) => {
             database(`SELECT * FROM usuarios WHERE email = $1;`, ["teste1234@gmail.com"]).then((data) => {
-                jwt.verify(res.text, jwtSecret, function(err: any, decoded: any) {
+                jwt.verify(res.text, jwtSecret, function(_: any, decoded: any) {
                     expect(res.statusCode).toEqual(200);
                     expect(decoded.id).toEqual(data.rows[0].id);
                     expect(decoded.role).toEqual(data.rows[0].role);      
