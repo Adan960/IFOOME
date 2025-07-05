@@ -1,4 +1,5 @@
 import database, { dbPool } from '../../src/config/database';
+import redis from '../../src/config/cache';
 import app from '../../src/app';
 import jwt from 'jsonwebtoken';
 
@@ -12,6 +13,7 @@ function fail(reason?: string) {
 }
 
 afterAll(async () => {
+    await redis.quit();
     await null; // cuido disso depois
     if (dbPool) {
         await dbPool.end(); // Fechamento do pool de conexão
@@ -31,7 +33,7 @@ describe("autenticação de usuário",() => {
         })
     });
 
-    test("Deve logar com sucesso.",() => {
+    test("Deve retornar erro 401 pelo token está errado",() => {
         const token = jwt.sign({role: Date.now()}, jwtSecret);
         return request.get("/backend/cardapio").set('Authorization', `Bearer ${token}`).then((res: any) => {
             expect(res.statusCode).toEqual(401);

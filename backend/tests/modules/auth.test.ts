@@ -1,5 +1,6 @@
 import database, { dbPool } from '../../src/config/database';
 import app from '../../src/app';
+import redis from '../../src/config/cache';
 import jwt from 'jsonwebtoken';
 
 const supertest = require('supertest');
@@ -13,6 +14,7 @@ function fail(reason?: string) {
 
 // Esta função será executada uma única vez antes de todos os testes neste arquivo.
 beforeAll(async () => {
+    await redis.quit();
     await database(`DELETE FROM usuarios WHERE email = $1;`, ["teste1234@gmail.com"])
     await database(`DELETE FROM usuarios WHERE email = $1;`, ["teste1234"])
     await null; // cuido disso depois
