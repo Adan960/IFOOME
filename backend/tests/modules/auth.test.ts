@@ -12,20 +12,19 @@ function fail(reason?: string) {
   throw new Error(reason);
 }
 
-// Esta função será executada uma única vez antes de todos os testes neste arquivo.
 beforeAll(async () => {
-    await redis.quit();
     await database(`DELETE FROM usuarios WHERE email = $1;`, ["teste1234@gmail.com"])
     await database(`DELETE FROM usuarios WHERE email = $1;`, ["teste1234"])
     await null; // cuido disso depois
 });
 
 afterAll(async () => {
+    await redis.quit();
     await database(`DELETE FROM usuarios WHERE email = $1;`, ["teste1234@gmail.com"])
     await database(`DELETE FROM usuarios WHERE email = $1;`, ["teste1234"])
     await null; // cuido disso depois
     if (dbPool) {
-        await dbPool.end(); // Fechamento do pool de conexão
+        await dbPool.end();
     }
 });
 

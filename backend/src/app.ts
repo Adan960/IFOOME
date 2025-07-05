@@ -2,6 +2,7 @@ import express from 'express';
 import bodyParser from 'body-parser';
 import auth from './modules/auth';
 import user from './modules/user';
+import admin from './modules/admin';
 
 const app = express();
 
@@ -16,5 +17,6 @@ app.use((err: any, _: any, res: any, next: any) => {
 
 app.use("/",user);
 app.use("/",auth);
+app.use("/", admin);
 
 export default app;

@@ -18,7 +18,7 @@ router.get("/backend/cardapio", middleware, async (_,res) => {
         database('SELECT * FROM produtos;').then((data: DBres) => {
             res.send(data.rows); 
             res.status(200);
-            redis.set('products', JSON.stringify(data.rows)).then().catch(err => console.log(err));
+            redis.set('products', JSON.stringify(data.rows)).catch(err => console.log(err));
         }).catch((err: any) => {
             console.log(err);
             res.sendStatus(500);

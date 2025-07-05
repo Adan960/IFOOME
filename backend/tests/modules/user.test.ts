@@ -9,14 +9,14 @@ const request = supertest(app);
 const jwtSecret: string = process.env.JWT_SECRET || "";
 
 function fail(reason?: string) {
-  throw new Error(reason);
+    throw new Error(reason);
 }
 
 afterAll(async () => {
     await redis.quit();
     await null; // cuido disso depois
     if (dbPool) {
-        await dbPool.end(); // Fechamento do pool de conexão
+        await dbPool.end();
     }
 });
 
