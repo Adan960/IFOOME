@@ -12,12 +12,8 @@ function fail(reason?: string) {
     throw new Error(reason);
 }
 
-beforeAll(async () => {
-    await database(`DELETE FROM produtos WHERE tipo = $1;`, ["testes"]);
-    await null; // cuido disso depois
-});
-
 afterAll(async () => {
+    await redis.flushDb();
     await redis.quit();
     await null; // cuido disso depois
     if (dbPool) {

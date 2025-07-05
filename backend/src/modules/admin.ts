@@ -42,7 +42,7 @@ router.post("/backend/admin/cardapio", middleware, (req, res) => {
 router.delete("/backend/admin/cardapio", middleware, (req, res) => {
     const name: string = req.body.nome;
 
-    database(`DELETE FROM produtos WHERE tipo = $1;`, [name]).then(() => {
+    database(`DELETE FROM produtos WHERE nome = $1;`, [name]).then(() => {
         updateRedis(res);
     }).catch((err: object) => {
         console.log(err);
