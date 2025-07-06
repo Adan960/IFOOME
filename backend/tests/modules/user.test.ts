@@ -15,13 +15,15 @@ function fail(reason?: string) {
 }
 
 beforeAll(async () => {
+    await database(`DELETE FROM usuario WHERE email = $1;`, ["teste12345@gmail.com"]);
+    await null;
     await request.post("/backend/criarLogin").send({
-        "email": "teste1234@gmail.com",
-        "senha": "1234"
+        "email": "teste12345@gmail.com",
+        "senha": "12345"
     }).then(async () => {
         await request.post("/backend/login").send({
-            "email": "teste1234@gmail.com",
-            "senha": "1234"
+            "email": "teste12345@gmail.com",
+            "senha": "12345"
         }).then((res: any) => {
             token = res.text;
         }).catch((err: string) => {
@@ -34,6 +36,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
     await database(`DELETE FROM avaliacoes WHERE sugestao = $1;`, ["teste"]);
+    await database(`DELETE FROM usuarios WHERE email = $1;`, ["teste12345@gmail.com"]);
     await redis.quit();
     if (dbPool) {
         await dbPool.end();
@@ -66,8 +69,18 @@ describe("cardápio de usuáio",() => {
     });
 })
 
+describe("pedidos de usuário",() => {
+    test("Deve receber com sucesso os pedidos do usuário",() => {
+        return request.get("/backend/pedidos").set('Authorization', `Bearer ${token}`).then((res: any) => {
+            expect(res.statusCode).toEqual(200);
+        }).catch((err: any) => {
+            console.log(err);
+            fail(err);
+        })
+    })
+})
 
-describe("avaliação do usuário",() => {
+describe("avaliação de usuário",() => {
     test("Deve enviar uma avaliação com sucesso",() => {
         return request.post("/backend/avaliacao").set('Authorization', `Bearer ${token}`).send({
             "nota": 5,

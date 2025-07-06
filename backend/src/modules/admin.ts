@@ -33,7 +33,7 @@ router.delete("/backend/admin/cardapio", middleware, (req, res) => {
     })
 })
 
-type DBres = {
+interface DBres {
     rows: object[]
 }
 

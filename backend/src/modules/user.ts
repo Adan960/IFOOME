@@ -25,15 +25,26 @@ router.get("/backend/cardapio", middleware, async (_,res) => {
     }
 });
 
-router.post("/backend/avaliacao", middleware, (req, res) => {
-    const usuario: number = getIdByToken(req);
-    const nota = parseInt(req.body.nota);
-    const sugestao = req.body.sugestao;
+router.post("/backend/pedidos", middleware, (req, res) => {
+    const user: number = getIdByToken(req);
 
-    if(typeof(nota) == "number" && typeof(sugestao) == "string" && nota <= 5) {
+    database('SELECT * FROM pedidos WHERE usuario = $1;', [user]).then((data) => {
+        res.send(data.rows);
+    }).catch(err => {
+        console.log(err);
+        res.status(500);
+    })
+})
+
+router.post("/backend/avaliacao", middleware, (req, res) => {
+    const user: number = getIdByToken(req);
+    const note = parseInt(req.body.nota);
+    const sugestion = req.body.sugestao;
+
+    if(typeof(note) == "number" && typeof(sugestion) == "string" && note <= 5) {
         database(
             'INSERT INTO avaliacoes(usuario, nota, sugestao) VALUES($1, $2, $3);',
-            [usuario, nota, sugestao]
+            [user, note, sugestion]
         )
         res.sendStatus(201);
     } else {
@@ -41,7 +52,8 @@ router.post("/backend/avaliacao", middleware, (req, res) => {
     }
 })
 
-type DBres = {
+
+interface DBres {
     rows: object[]
 }
 

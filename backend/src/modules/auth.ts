@@ -59,27 +59,27 @@ router.post("/backend/login",async (req: any,res: any):Promise<void> => {
 });
 
 
-type User = {
+interface User {
     id: number,
     email: string,
     senha: string,
     role: number
-};
+}
 
 async function hash(password: string): Promise<string> {
     const saltRounds: number = 12;
     const hash = await bcrypt.hash(password, saltRounds);
     return hash;
-};
+}
 
 async function authPassword(password: string, hash: string): Promise<boolean> {
     return await bcrypt.compare(password, hash);
-};
+}
 
 async function findUserByEmail(email: string): Promise<undefined | User> {
     const tst = await database('SELECT * FROM usuarios WHERE email = $1;',[email]);
     return await tst.rows[0];
-};
+}
 
 function createToken(id: number, role: number):string {
     return jwt.sign({id: id, role: role}, jwtSecret);
