@@ -15,7 +15,7 @@ function fail(reason?: string) {
 }
 
 beforeAll(async () => {
-    await database(`DELETE FROM usuario WHERE email = $1;`, ["teste12345@gmail.com"]);
+    await database(`DELETE FROM usuarios WHERE email = $1;`, ["teste12345@gmail.com"]);
     await null;
     await request.post("/backend/criarLogin").send({
         "email": "teste12345@gmail.com",

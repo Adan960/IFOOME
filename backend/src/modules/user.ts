@@ -25,7 +25,7 @@ router.get("/backend/cardapio", middleware, async (_,res) => {
     }
 });
 
-router.post("/backend/pedidos", middleware, (req, res) => {
+router.get("/backend/pedidos", middleware, (req, res) => {
     const user: number = getIdByToken(req);
 
     database('SELECT * FROM pedidos WHERE usuario = $1;', [user]).then((data) => {
@@ -33,6 +33,27 @@ router.post("/backend/pedidos", middleware, (req, res) => {
     }).catch(err => {
         console.log(err);
         res.status(500);
+    })
+})
+
+
+router.post("/backend/pedidos", middleware, (req, res) => {
+    const price = req.body.preco * 100;
+    const amount = req.body.quantidade;
+    const name = req.body.nome;
+    const kind = req.body.tipo;
+    const state = req.body.estado;
+    const deliveryDate = req.body.dataEntrega;
+    const user: number = getIdByToken(req);
+
+    database(
+        'INSERT INTO pedidos (preco, quantidade, nome, tipo, estado, dataentrega, usuario) VALUES($1, $2, $3, $4, $5, $6, $7);',
+        [price, amount, name, kind, state, deliveryDate, user]
+    ).then(() => {
+        res.sendStatus(200);
+    }).catch(err => {
+        res.sendStatus(400);
+        console.log(err);
     })
 })
 
