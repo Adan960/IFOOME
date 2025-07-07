@@ -44,11 +44,11 @@ router.post("/backend/pedidos", middleware, (req, res) => {
     const kind = req.body.tipo;
     const state = req.body.estado;
     const deliveryDate = req.body.dataEntrega;
-    const user: number = getIdByToken(req);
+    const userId: number = getIdByToken(req);
 
     database(
         'INSERT INTO pedidos (preco, quantidade, nome, tipo, estado, dataentrega, usuario) VALUES($1, $2, $3, $4, $5, $6, $7);',
-        [price, amount, name, kind, state, deliveryDate, user]
+        [price, amount, name, kind, state, deliveryDate, userId]
     ).then(() => {
         res.sendStatus(200);
     }).catch(err => {

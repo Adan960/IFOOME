@@ -9,6 +9,7 @@ const request = supertest(app);
 const jwtSecret: string = process.env.JWT_SECRET || "";
 
 let token: string;
+let userId: number;
 
 function fail(reason?: string) {
     throw new Error(reason);
@@ -26,6 +27,8 @@ beforeAll(async () => {
             "senha": "12345"
         }).then((res: any) => {
             token = res.text;
+            const user: any = jwt.verify(token, jwtSecret);
+            userId = user.id;
         }).catch((err: string) => {
             console.log(err);
         })
@@ -69,10 +72,16 @@ describe("cardápio de usuáio",() => {
     });
 })
 
-describe("pedidos de usuário",() => {
+describe("receber lista de pedidos usuário",() => {
     test("Deve receber com sucesso os pedidos do usuário",() => {
         return request.get("/backend/pedidos").set('Authorization', `Bearer ${token}`).then((res: any) => {
-            expect(res.statusCode).toEqual(200);
+            database('SELECT * FROM pedidos WHERE usuario = $1;', [userId]).then((data) => {
+                expect(res.statusCode).toEqual(200);
+                expect(res.body).toEqual(data.rows);
+            }).catch(err => {
+                console.log(err);
+                fail();
+            })
         }).catch((err: any) => {
             console.log(err);
             fail(err);
