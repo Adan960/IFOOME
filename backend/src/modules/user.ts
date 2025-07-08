@@ -47,7 +47,7 @@ router.post("/backend/pedidos", middleware, (req, res) => {
 
     if(Number.isInteger(price) && Number.isInteger(amount)) {
         if(typeof(name) == "string" && typeof(kind) == "string" && typeof(state) == "string" && typeof(deliveryDate) == "string") {
-            if(deliveryDate.split("-").map(Number)[0] == new Date().getFullYear() && isValidDate(deliveryDate)) {
+            if(isValidDate(deliveryDate) && deliveryDate.split("-").map(Number)[0] == new Date().getFullYear() ) {
                 database(
                     `INSERT INTO pedidos (preco, quantidade, nome, tipo, estado, dataentrega, usuario) 
                      VALUES($1, $2, $3, $4, $5, $6, $7);`,
