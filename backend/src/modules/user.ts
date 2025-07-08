@@ -26,16 +26,15 @@ router.get("/backend/cardapio", middleware, async (_,res) => {
 });
 
 router.get("/backend/pedidos", middleware, (req, res) => {
-    const user: number = getIdByToken(req);
+    const userId: number = getIdByToken(req);
 
-    database('SELECT * FROM pedidos WHERE usuario = $1;', [user]).then((data) => {
+    database('SELECT * FROM pedidos WHERE usuario = $1;', [userId]).then((data) => {
         res.send(data.rows);
     }).catch(err => {
         console.log(err);
         res.status(500);
     })
 })
-
 
 router.post("/backend/pedidos", middleware, (req, res) => {
     const price = req.body.preco * 100;
@@ -46,15 +45,28 @@ router.post("/backend/pedidos", middleware, (req, res) => {
     const deliveryDate = req.body.dataEntrega;
     const userId: number = getIdByToken(req);
 
-    database(
-        'INSERT INTO pedidos (preco, quantidade, nome, tipo, estado, dataentrega, usuario) VALUES($1, $2, $3, $4, $5, $6, $7);',
-        [price, amount, name, kind, state, deliveryDate, userId]
-    ).then(() => {
-        res.sendStatus(200);
-    }).catch(err => {
+    if(Number.isInteger(price) && Number.isInteger(amount)) {
+        if(typeof(name) == "string" && typeof(kind) == "string" && typeof(state) == "string" && typeof(deliveryDate) == "string") {
+            if(deliveryDate.split("-").map(Number)[0] == new Date().getFullYear() && isValidDate(deliveryDate)) {
+                database(
+                    `INSERT INTO pedidos (preco, quantidade, nome, tipo, estado, dataentrega, usuario) 
+                     VALUES($1, $2, $3, $4, $5, $6, $7);`,
+                    [price, amount, name, kind, state, deliveryDate, userId]
+                ).then(() => {
+                    res.sendStatus(200);
+                }).catch(err => {
+                    res.sendStatus(500);
+                    console.log(err);
+                })   
+            } else {
+                res.sendStatus(400);
+            }
+        } else {
+            res.sendStatus(400);
+        }
+    } else {
         res.sendStatus(400);
-        console.log(err);
-    })
+    }
 })
 
 router.post("/backend/avaliacao", middleware, (req, res) => {
@@ -74,8 +86,11 @@ router.post("/backend/avaliacao", middleware, (req, res) => {
 })
 
 
-interface DBres {
-    rows: object[]
+interface DBres {rows: object[]}
+
+function isValidDate(dateString: string): boolean {
+    const date = new Date(dateString);
+    return !isNaN(date.getTime());
 }
 
 function getIdByToken(req: any): number {

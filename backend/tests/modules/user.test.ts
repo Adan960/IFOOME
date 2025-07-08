@@ -38,6 +38,7 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
+    await database(`DELETE FROM pedidos WHERE tipo = $1;`, ["teste"]);
     await database(`DELETE FROM avaliacoes WHERE sugestao = $1;`, ["teste"]);
     await database(`DELETE FROM usuarios WHERE email = $1;`, ["teste12345@gmail.com"]);
     await redis.quit();
@@ -80,8 +81,73 @@ describe("receber lista de pedidos usuário",() => {
                 expect(res.body).toEqual(data.rows);
             }).catch(err => {
                 console.log(err);
-                fail();
+                fail(err);
             })
+        }).catch((err: any) => {
+            console.log(err);
+            fail(err);
+        })
+    })
+})
+
+describe("Fazer um pedido",() => {
+    test("Deve fazer um pedido com sucesso",() => {
+        return request.post("/backend/pedidos").set('Authorization', `Bearer ${token}`).send({
+            "preco": 2.5,
+            "quantidade": 3,
+            "nome": "teste",
+            "tipo": "teste",
+            "estado": "pendente",
+            "dataEntrega": "2025-07-07"
+        }).then((res: any) => {
+            expect(res.statusCode).toEqual(200);
+        }).catch((err: any) => {
+            console.log(err);
+            fail(err);
+        })
+    })
+
+    test("Deve retornar erro 400 pela requisição está errada",() => {
+        return request.post("/backend/pedidos").set('Authorization', `Bearer ${token}`).send({
+            "preco": 2.5,
+            "quantidade": "3",
+            "nome": "teste",
+            "tipo": "teste",
+            "estado": "pendente",
+            "dataEntrega": "2025-07-07"
+        }).then((res: any) => {
+            expect(res.statusCode).toEqual(400);
+        }).catch((err: any) => {
+            console.log(err);
+            fail(err);
+        })
+    })
+
+    test("Deve retornar erro 400 pela requisição ter um valor faltando",() => {
+        return request.post("/backend/pedidos").set('Authorization', `Bearer ${token}`).send({
+            "preco": 2.5,
+            "quantidade": 3,
+            "nome": "teste",
+            "estado": "pendente",
+            "dataEntrega": "2025-07-07"
+        }).then((res: any) => {
+            expect(res.statusCode).toEqual(400);
+        }).catch((err: any) => {
+            console.log(err);
+            fail(err);
+        })
+    })
+
+    test("Deve retornar erro 400 pela data ser inválida",() => {
+        return request.post("/backend/pedidos").set('Authorization', `Bearer ${token}`).send({
+            "preco": 2.5,
+            "quantidade": 3,
+            "nome": "teste",
+            "tipo": "teste",
+            "estado": "pendente",
+            "dataEntrega": "2025-13-07"
+        }).then((res: any) => {
+            expect(res.statusCode).toEqual(400);
         }).catch((err: any) => {
             console.log(err);
             fail(err);
