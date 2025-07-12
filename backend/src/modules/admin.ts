@@ -7,43 +7,35 @@ const router = express.Router();
 
 
 router.post("/backend/admin/menu", middleware, (req, res) => {
-    if(req.body) {
-        const name: string | undefined = req.body.name;
-        const kind: string | undefined = req.body.kind;
-        const price = req.body.price * 100;
+    const name: string | undefined = req.body.name;
+    const kind: string | undefined = req.body.kind;
+    const price = req.body.price * 100;
 
-        if(typeof(name) == "string" && typeof(kind) == "string" && typeof(price) == "number") {
-            database(
-                'INSERT INTO products(name, price, kind) VALUES($1, $2, $3);',
-                [name, price, kind]
-            ).then(() => {
-                updateRedis(res);
-            }).catch((err: object) => {
-                console.log(err);
-                res.sendStatus(500);
-            })
-        } else {
-            res.sendStatus(400);
-        }
+    if(typeof(name) == "string" && typeof(kind) == "string" && typeof(price) == "number") {
+        database(
+            'INSERT INTO products(name, price, kind) VALUES($1, $2, $3);',
+            [name, price, kind]
+        ).then(() => {
+            updateRedis(res);
+        }).catch((err: object) => {
+            console.log(err);
+            res.sendStatus(500);
+        })
     } else {
         res.sendStatus(400);
     }
 });
 
 router.delete("/backend/admin/menu", middleware, (req, res) => {
-    if(req.body) {
-        const name: string | undefined = req.body.name;
+    const name: string | undefined = req.body.name;
 
-        if(typeof(name) == "string") {
-            database(`DELETE FROM products WHERE name = $1;`, [name]).then(() => {
-                updateRedis(res);
-            }).catch((err: object) => {
-                console.log(err);
-                res.sendStatus(500);
-            });
-        } else {
-            res.sendStatus(400);
-        }
+    if(typeof(name) == "string") {
+        database(`DELETE FROM products WHERE name = $1;`, [name]).then(() => {
+            updateRedis(res);
+        }).catch((err: object) => {
+            console.log(err);
+            res.sendStatus(500);
+        });
     } else {
         res.sendStatus(400);
     }

@@ -66,11 +66,11 @@ router.post("/backend/orders", middleware, (req: any, res: any) => {
 router.post("/backend/assessment", middleware, (req, res) => {
     const userId: number = getIdByToken(req);
     const score = parseInt(req.body.score);
-    const sugestion = req.body.sugestao;
+    const sugestion = req.body.sugestion;
 
     if(typeof(score) == "number" && typeof(sugestion) == "string" && score <= 5) {
         database(
-            'INSERT INTO reviews(userId, score, sugestao) VALUES($1, $2, $3);',
+            'INSERT INTO reviews(userId, score, sugestion) VALUES($1, $2, $3);',
             [userId, score, sugestion]
         )
         res.sendStatus(201);

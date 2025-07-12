@@ -5,42 +5,40 @@ import database from '../config/database';
 import middleware from '../middleware/loginAuth';
 
 const router = express.Router();
-
-const regex: RegExp = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const jwtSecret: string = process.env.JWT_SECRET || "";
 
 
 router.post("/backend/createLogin", middleware ,async (req: any,res: any):Promise<void> => {
-        const email: string = req.body.email;
-        const password: string = req.body.password;
+    const email: string = req.body.email;
+    const password: string = req.body.password;
 
-        if(typeof(await findUserByEmail(email)) == "undefined") {
-            const passwordHash: string = await hash(password);
-            database(
-                'INSERT INTO users(email, password, role) VALUES($1, $2, $3);',
-                [email, passwordHash, 0]
-            );
-            res.sendStatus(201);
-        } else {
-            res.sendStatus(409);
-        }
+    if(typeof(await findUserByEmail(email)) == "undefined") {
+        const passwordHash: string = await hash(password);
+        database(
+            'INSERT INTO users(email, password, role) VALUES($1, $2, $3);',
+            [email, passwordHash, 0]
+        );
+        res.sendStatus(201);
+    } else {
+        res.sendStatus(409);
+    }
 });
 
 router.post("/backend/login", middleware ,async (req: any,res: any):Promise<void> => {
-        const email: string = await req.body.email;
-        const password: string = await req.body.password;
+    const email: string = await req.body.email;
+    const password: string = await req.body.password;
 
-        const user: User | undefined = await findUserByEmail(email);
-        if(typeof(user) != "undefined") {
-            if(await authPassword(password, user.password)) {
-                res.Status = 200;
-                res.send(createToken(user.id,user.role));
-            } else {
-                res.sendStatus(403);
-            }
+    const user: User | undefined = await findUserByEmail(email);
+    if(typeof(user) != "undefined") {
+        if(await authPassword(password, user.password)) {
+            res.Status = 200;
+            res.send(createToken(user.id,user.role));
         } else {
-            res.sendStatus(404);
+            res.sendStatus(403);
         }
+    } else {
+        res.sendStatus(404);
+    }
 });
 
 

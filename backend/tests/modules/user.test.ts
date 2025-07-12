@@ -30,7 +30,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
     await database(`DELETE FROM orders WHERE kind = $1;`, ["teste"]);
-    await database(`DELETE FROM reviews WHERE sugestao = $1;`, ["teste"]);
+    await database(`DELETE FROM reviews WHERE sugestion = $1;`, ["teste"]);
     await database(`DELETE FROM users WHERE email = $1;`, ["teste12345@gmail.com"]);
     await dbPool.end()
     await redis.quit();
@@ -148,7 +148,7 @@ describe("avaliação de usuário",() => {
     test("Deve enviar uma avaliação com sucesso",() => {
         return request.post("/backend/assessment").set('Authorization', `Bearer ${token}`).send({
             "score": 5,
-            "sugestao": "teste"
+            "sugestion": "teste"
         }).then((res: any) => {
             expect(res.statusCode).toEqual(201);
         }).catch((err: any) => {
@@ -159,7 +159,7 @@ describe("avaliação de usuário",() => {
 
     test("Deve enviar uma avaliação e receber erro 400 por não ter nota",() => {
         return request.post("/backend/assessment").set('Authorization', `Bearer ${token}`).send({
-            "sugestao": "teste"
+            "sugestion": "teste"
         }).then((res: any) => {
             expect(res.statusCode).toEqual(400);
         }).catch((err: any) => {

@@ -29,7 +29,7 @@ CREATE TABLE IF NOT EXISTS reviews (
     id SERIAL PRIMARY KEY,
     userId INT NOT NULL,
     score INT NOT NULL,
-    sugestao TEXT NULL,
+    sugestion TEXT NULL,
     FOREIGN KEY (userId) REFERENCES users(id)
         ON DELETE CASCADE
         ON UPDATE CASCADE
