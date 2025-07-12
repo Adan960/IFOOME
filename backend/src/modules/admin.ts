@@ -31,14 +31,22 @@ router.post("/backend/admin/menu", middleware, (req, res) => {
 });
 
 router.delete("/backend/admin/menu", middleware, (req, res) => {
-    const name: string = req.body.name;
+    if(req.body) {
+        const name: string | undefined = req.body.name;
 
-    database(`DELETE FROM products WHERE name = $1;`, [name]).then(() => {
-        updateRedis(res);
-    }).catch((err: object) => {
-        console.log(err);
-        res.sendStatus(500);
-    })
+        if(typeof(name) == "string") {
+            database(`DELETE FROM products WHERE name = $1;`, [name]).then(() => {
+                updateRedis(res);
+            }).catch((err: object) => {
+                console.log(err);
+                res.sendStatus(500);
+            });
+        } else {
+            res.sendStatus(400);
+        }
+    } else {
+        res.sendStatus(400);
+    }
 });
 
 interface DBres {

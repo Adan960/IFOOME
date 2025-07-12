@@ -8,21 +8,30 @@ const request = supertest(app);
 
 const jwtSecret: string = process.env.JWT_SECRET || "";
 
+let token: string;
+let userId: number;
+let role: number;
+
 function fail(reason?: string) {
     throw new Error(reason);
 }
 
+beforeAll(async () => {
+    await database('SELECT * FROM users WHERE email = $1;',[process.env.ADMIN_LOGIN]).then((data: any) => {
+        userId = data.rows[0].id;
+        role = data.rows[0].role;
+        token = jwt.sign({id: userId, role: role}, jwtSecret);
+    });
+})
+
 afterAll(async () => {
-    await redis.flushDb();
+    await dbPool.end()
     await redis.quit();
-    if (dbPool) {
-        await dbPool.end();
-    }
 });
 
-describe("Produto no cardápio", () => {
+describe("Adicionar produto no cardápio", () => {
     test("Deve adicionar um produto com sucesso",() => {
-        return request.post("/backend/admin/menu").send({
+        return request.post("/backend/admin/menu").set('Authorization', `Bearer ${token}`).send({
             "name": "produtoTeste",
             "price": 2.5,
             "kind": "testes"
@@ -33,8 +42,46 @@ describe("Produto no cardápio", () => {
         })
     });
 
+    test("Deve retornar um erro pela requisição ser inválida",() => {
+        return request.post("/backend/admin/menu").set('Authorization', `Bearer ${token}`).send({
+            "price": 2.5,
+            "kind": "testes"
+        }).then((res: any) => {
+            expect(res.statusCode).toEqual(400);
+        }).catch((err: any) => {
+            fail(err);
+        })
+    });
+
+    test("Deve retornar um erro por não ter token",() => {
+        return request.post("/backend/admin/menu").send({
+            "name": "produtoTeste",
+            "price": 2.5,
+            "kind": "testes"
+        }).then((res: any) => {
+            expect(res.statusCode).toEqual(400);
+        }).catch((err: any) => {
+            fail(err);
+        })
+    });
+
+    test("Deve retornar um erro pelo usuário não ter permissão de admin",() => {
+        const wrongToken = jwt.sign({id: userId, role: 0}, jwtSecret);
+        return request.post("/backend/admin/menu").set('Authorization', `Bearer ${wrongToken}`).send({
+            "name": "produtoTeste",
+            "price": 2.5,
+            "kind": "testes"
+        }).then((res: any) => {
+            expect(res.statusCode).toEqual(401);
+        }).catch((err: any) => {
+            fail(err);
+        })
+    });
+});
+
+describe("Remover produto do cardápio", () => {
     test("Deve remover um produto com sucesso",() => {
-        return request.delete("/backend/admin/menu").send({
+        return request.delete("/backend/admin/menu").set('Authorization', `Bearer ${token}`).send({
             "name": "produtoTeste"
         }).then((res: any) => {
             expect(res.statusCode).toEqual(200);

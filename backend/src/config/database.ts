@@ -17,7 +17,7 @@ export default async function conectar(sql: string, params?: any[]):Promise<any>
         return await client.query(sql, params);
     } catch(err) {
         console.log(err);
-        return await err;
+        return err;
     } finally {
         client.release();
     }

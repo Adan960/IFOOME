@@ -1,5 +1,6 @@
 import database, { dbPool } from '../../src/config/database';
 import redis from '../../src/config/cache';
+import bcrypt from 'bcrypt';
 import app from '../../src/app';
 import jwt from 'jsonwebtoken';
 
@@ -16,35 +17,23 @@ function fail(reason?: string) {
 }
 
 beforeAll(async () => {
-    await database(`DELETE FROM users WHERE email = $1;`, ["teste12345@gmail.com"]);
-    await null;
-    await request.post("/backend/createLogin").send({
-        "email": "teste12345@gmail.com",
-        "password": "12345"
-    }).then(async () => {
-        await request.post("/backend/login").send({
-            "email": "teste12345@gmail.com",
-            "password": "12345"
-        }).then((res: any) => {
-            token = res.text;
-            const user: any = jwt.verify(token, jwtSecret);
-            userId = user.id;
-        }).catch((err: string) => {
-            console.log(err);
-        })
-    }).catch((err: string) => {
-        console.log(err);
-    })
+    const passwordHash: string = await bcrypt.hash("12345", 12);
+    const email: string = "teste12345@gmail.com";
+
+    await database(`DELETE FROM users WHERE email = $1;`, [email]);
+    await database('INSERT INTO users(email, password, role) VALUES($1, $2, $3);',[email, passwordHash, 0])
+    await database('SELECT * FROM users WHERE email = $1;',[email]).then((data: any) => {
+        userId = data.rows[0].id;
+        token = jwt.sign({id: userId, role: 0}, jwtSecret);
+    });
 })
 
 afterAll(async () => {
     await database(`DELETE FROM orders WHERE kind = $1;`, ["teste"]);
     await database(`DELETE FROM reviews WHERE sugestao = $1;`, ["teste"]);
     await database(`DELETE FROM users WHERE email = $1;`, ["teste12345@gmail.com"]);
+    await dbPool.end()
     await redis.quit();
-    if (dbPool) {
-        await dbPool.end();
-    }
 });
 
 describe("cardápio de usuáio",() => {
@@ -60,8 +49,8 @@ describe("cardápio de usuáio",() => {
     });
 
     test("Deve retornar erro 401 pelo token está errado",() => {
-        const token = jwt.sign({role: Date.now()}, jwtSecret);
-        return request.get("/backend/menu").set('Authorization', `Bearer ${token}`).then((res: any) => {
+        const wrongToken = jwt.sign({role: Date.now()}, jwtSecret);
+        return request.get("/backend/menu").set('Authorization', `Bearer ${wrongToken}`).then((res: any) => {
             expect(res.statusCode).toEqual(401);
         })
     });

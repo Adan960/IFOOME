@@ -18,12 +18,10 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
-    await redis.quit();
     await database(`DELETE FROM users WHERE email = $1;`, ["teste1234@gmail.com"])
     await database(`DELETE FROM users WHERE email = $1;`, ["teste1234"])
-    if (dbPool) {
-        await dbPool.end();
-    }
+    await dbPool.end()
+    await redis.quit();
 });
 
 describe("Cadastro de usuário", () => {
