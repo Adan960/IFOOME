@@ -8,7 +8,7 @@ const router = express.Router();
 const jwtSecret: string = process.env.JWT_SECRET || "";
 
 
-router.post("/backend/createLogin", middleware ,async (req: any,res: any):Promise<void> => {
+router.post("/backend/createLogin", middleware ,async (req, res):Promise<void> => {
     const email: string = req.body.email;
     const password: string = req.body.password;
 
@@ -24,14 +24,13 @@ router.post("/backend/createLogin", middleware ,async (req: any,res: any):Promis
     }
 });
 
-router.post("/backend/login", middleware ,async (req: any,res: any):Promise<void> => {
+router.post("/backend/login", middleware ,async (req, res):Promise<void> => {
     const email: string = await req.body.email;
     const password: string = await req.body.password;
 
     const user: User | undefined = await findUserByEmail(email);
     if(typeof(user) != "undefined") {
         if(await authPassword(password, user.password)) {
-            res.Status = 200;
             res.send(createToken(user.id,user.role));
         } else {
             res.sendStatus(403);

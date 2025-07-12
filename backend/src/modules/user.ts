@@ -16,7 +16,6 @@ router.get("/backend/menu", middleware, async (_,res) => {
     } else {
         database('SELECT * FROM products;').then((data: DBres) => {
             res.send(data.rows); 
-            res.status(200);
             redis.set('products', JSON.stringify(data.rows)).catch(err => console.log(err));
         }).catch((err: any) => {
             console.log(err);
@@ -32,7 +31,7 @@ router.get("/backend/orders", middleware, (req, res) => {
         res.send(data.rows);
     }).catch(err => {
         console.log(err);
-        res.status(500);
+        res.sendStatus(500);
     })
 });
 
@@ -63,7 +62,7 @@ router.post("/backend/orders", middleware, (req: any, res: any) => {
     });
 });
 
-router.post("/backend/assessment", middleware, (req, res) => {
+router.post("/backend/review", middleware, (req, res) => {
     const userId: number = getIdByToken(req);
     const score = parseInt(req.body.score);
     const sugestion = req.body.sugestion;

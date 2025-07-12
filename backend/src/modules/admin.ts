@@ -5,6 +5,14 @@ import redis from '../config/cache';
 
 const router = express.Router();
 
+router.get("/backend/admin/review", middleware, (_, res) => {
+    database('SELECT * FROM reviews;').then((data: DBres) => {
+        res.send(data.rows); 
+    }).catch((err: any) => {
+        console.log(err);
+        res.sendStatus(500);
+    })
+});
 
 router.post("/backend/admin/menu", middleware, (req, res) => {
     const name: string | undefined = req.body.name;
@@ -20,7 +28,7 @@ router.post("/backend/admin/menu", middleware, (req, res) => {
         }).catch((err: object) => {
             console.log(err);
             res.sendStatus(500);
-        })
+        });
     } else {
         res.sendStatus(400);
     }

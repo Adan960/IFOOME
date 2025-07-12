@@ -146,7 +146,7 @@ describe("Fazer um pedido",() => {
 
 describe("avaliação de usuário",() => {
     test("Deve enviar uma avaliação com sucesso",() => {
-        return request.post("/backend/assessment").set('Authorization', `Bearer ${token}`).send({
+        return request.post("/backend/review").set('Authorization', `Bearer ${token}`).send({
             "score": 5,
             "sugestion": "teste"
         }).then((res: any) => {
@@ -158,7 +158,7 @@ describe("avaliação de usuário",() => {
     })
 
     test("Deve enviar uma avaliação e receber erro 400 por não ter nota",() => {
-        return request.post("/backend/assessment").set('Authorization', `Bearer ${token}`).send({
+        return request.post("/backend/review").set('Authorization', `Bearer ${token}`).send({
             "sugestion": "teste"
         }).then((res: any) => {
             expect(res.statusCode).toEqual(400);

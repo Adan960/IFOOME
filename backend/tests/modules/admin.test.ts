@@ -22,11 +22,44 @@ beforeAll(async () => {
         role = data.rows[0].role;
         token = jwt.sign({id: userId, role: role}, jwtSecret);
     });
-})
+});
 
 afterAll(async () => {
     await dbPool.end()
     await redis.quit();
+});
+
+describe("Visualizar avaliações", () => {
+    test("Deve exibir todas as avaliações com sucesso",() => {
+        return request.get("/backend/admin/review").set('Authorization', `Bearer ${token}`).then((res: any) => {
+            database('SELECT * FROM reviews;').then((data) => {
+                expect(res.statusCode).toEqual(200);
+                expect(res.body).toEqual(data.rows);
+            }).catch(err => {
+                console.log(err);
+                fail(err);
+            })
+        }).catch((err: any) => {
+            fail(err);
+        })
+    });
+
+    test("Deve retornar um erro por não ter token",() => {
+        return request.get("/backend/admin/review").then((res: any) => {
+            expect(res.statusCode).toEqual(400);
+        }).catch((err: any) => {
+            fail(err);
+        })
+    });
+
+    test("Deve retornar um erro pelo usuário não ter permissão de admin",() => {
+        const wrongToken = jwt.sign({id: userId, role: 0}, jwtSecret);
+        return request.get("/backend/admin/review").set('Authorization', `Bearer ${wrongToken}`).then((res: any) => {
+            expect(res.statusCode).toEqual(401);
+        }).catch((err: any) => {
+            fail(err);
+        })
+    });
 });
 
 describe("Adicionar produto no cardápio", () => {
@@ -52,31 +85,6 @@ describe("Adicionar produto no cardápio", () => {
             fail(err);
         })
     });
-
-    test("Deve retornar um erro por não ter token",() => {
-        return request.post("/backend/admin/menu").send({
-            "name": "produtoTeste",
-            "price": 2.5,
-            "kind": "testes"
-        }).then((res: any) => {
-            expect(res.statusCode).toEqual(400);
-        }).catch((err: any) => {
-            fail(err);
-        })
-    });
-
-    test("Deve retornar um erro pelo usuário não ter permissão de admin",() => {
-        const wrongToken = jwt.sign({id: userId, role: 0}, jwtSecret);
-        return request.post("/backend/admin/menu").set('Authorization', `Bearer ${wrongToken}`).send({
-            "name": "produtoTeste",
-            "price": 2.5,
-            "kind": "testes"
-        }).then((res: any) => {
-            expect(res.statusCode).toEqual(401);
-        }).catch((err: any) => {
-            fail(err);
-        })
-    });
 });
 
 describe("Remover produto do cardápio", () => {
@@ -85,6 +93,14 @@ describe("Remover produto do cardápio", () => {
             "name": "produtoTeste"
         }).then((res: any) => {
             expect(res.statusCode).toEqual(200);
+        }).catch((err: any) => {
+            fail(err);
+        })
+    });
+
+    test("Deve retornar um erro pela requisição ser inválida",() => {
+        return request.delete("/backend/admin/menu").set('Authorization', `Bearer ${token}`).send({}).then((res: any) => {
+            expect(res.statusCode).toEqual(400);
         }).catch((err: any) => {
             fail(err);
         })
