@@ -34,7 +34,7 @@ router.get("/backend/orders", middleware, (req, res) => {
         console.log(err);
         res.status(500);
     })
-})
+});
 
 router.post("/backend/orders", middleware, (req: any, res: any) => {
     const { price, amount, name, kind, state, deliveryDate } = req.body;
@@ -77,7 +77,7 @@ router.post("/backend/assessment", middleware, (req, res) => {
     } else {
         res.sendStatus(400);
     }
-})
+});
 
 
 interface DBres {rows: object[]}

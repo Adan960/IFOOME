@@ -10,15 +10,15 @@ const jwtSecret: string = process.env.JWT_SECRET || "";
 
 
 router.post("/backend/createLogin",async (req: any,res: any):Promise<void> => {
-    if(req.body && typeof(req.body.email) == "string" && typeof(req.body.senha) == "string") {
+    if(req.body && typeof(req.body.email) == "string" && typeof(req.body.password) == "string") {
         const email: string = req.body.email;
-        const password: string = req.body.senha;
+        const password: string = req.body.password;
 
         if(regex.test(email)) {
             if(typeof(await findUserByEmail(email)) == "undefined") {
                 const passwordHash: string = await hash(password);
                 database(
-                    'INSERT INTO users(email, senha, role) VALUES($1, $2, $3);',
+                    'INSERT INTO users(email, password, role) VALUES($1, $2, $3);',
                     [email, passwordHash, 0]
                 );
                 res.sendStatus(201);
@@ -34,14 +34,14 @@ router.post("/backend/createLogin",async (req: any,res: any):Promise<void> => {
 });
 
 router.post("/backend/login",async (req: any,res: any):Promise<void> => {
-    if(req.body && typeof(req.body.email) == "string" && typeof(req.body.senha) == "string") {
+    if(req.body && typeof(req.body.email) == "string" && typeof(req.body.password) == "string") {
         const email: string = await req.body.email;
-        const password: string = await req.body.senha;
+        const password: string = await req.body.password;
 
         if(regex.test(email)) {
             const user: User | undefined = await findUserByEmail(email);
             if(typeof(user) != "undefined") {
-                if(await authPassword(password, user.senha)) {
+                if(await authPassword(password, user.password)) {
                     res.Status = 200;
                     res.send(createToken(user.id,user.role));
                 } else {
@@ -62,7 +62,7 @@ router.post("/backend/login",async (req: any,res: any):Promise<void> => {
 interface User {
     id: number,
     email: string,
-    senha: string,
+    password: string,
     role: number
 }
 

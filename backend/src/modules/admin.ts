@@ -7,20 +7,28 @@ const router = express.Router();
 
 
 router.post("/backend/admin/menu", middleware, (req, res) => {
-    const name: string = req.body.name;
-    const price: number = req.body.price * 100;
-    const type: string = req.body.kind;
+    if(req.body) {
+        const name: string | undefined = req.body.name;
+        const kind: string | undefined = req.body.kind;
+        const price = req.body.price * 100;
 
-    database(
-        'INSERT INTO products(name, price, kind) VALUES($1, $2, $3);',
-        [name, price, type]
-    ).then(() => {
-        updateRedis(res);
-    }).catch((err: object) => {
-        console.log(err);
-        res.sendStatus(500);
-    })
-})
+        if(typeof(name) == "string" && typeof(kind) == "string" && typeof(price) == "number") {
+            database(
+                'INSERT INTO products(name, price, kind) VALUES($1, $2, $3);',
+                [name, price, kind]
+            ).then(() => {
+                updateRedis(res);
+            }).catch((err: object) => {
+                console.log(err);
+                res.sendStatus(500);
+            })
+        } else {
+            res.sendStatus(400);
+        }
+    } else {
+        res.sendStatus(400);
+    }
+});
 
 router.delete("/backend/admin/menu", middleware, (req, res) => {
     const name: string = req.body.name;
@@ -31,7 +39,7 @@ router.delete("/backend/admin/menu", middleware, (req, res) => {
         console.log(err);
         res.sendStatus(500);
     })
-})
+});
 
 interface DBres {
     rows: object[]

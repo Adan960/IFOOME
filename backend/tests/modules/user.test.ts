@@ -20,11 +20,11 @@ beforeAll(async () => {
     await null;
     await request.post("/backend/createLogin").send({
         "email": "teste12345@gmail.com",
-        "senha": "12345"
+        "password": "12345"
     }).then(async () => {
         await request.post("/backend/login").send({
             "email": "teste12345@gmail.com",
-            "senha": "12345"
+            "password": "12345"
         }).then((res: any) => {
             token = res.text;
             const user: any = jwt.verify(token, jwtSecret);

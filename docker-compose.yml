@@ -4,11 +4,11 @@ services:
     container_name: db-postgres-ifoome
     restart: always
     environment:
-      POSTGRES_USER: ${DB_User}
-      POSTGRES_PASSWORD: ${DB_Password}
-      POSTGRES_DB: ${DB_Name}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
     ports:
-      - "${DB_Ports}"
+      - "${DB_PORTS}"
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./init.sql:/docker-entrypoint-initdb.d/init.sql
