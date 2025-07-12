@@ -6,13 +6,13 @@ import redis from '../config/cache';
 const router = express.Router();
 
 
-router.post("/backend/admin/cardapio", middleware, (req, res) => {
-    const name: string = req.body.nome;
-    const price: number = req.body.preco * 100;
-    const type: string = req.body.tipo;
+router.post("/backend/admin/menu", middleware, (req, res) => {
+    const name: string = req.body.name;
+    const price: number = req.body.price * 100;
+    const type: string = req.body.kind;
 
     database(
-        'INSERT INTO produtos(nome, preco, tipo) VALUES($1, $2, $3);',
+        'INSERT INTO products(name, price, kind) VALUES($1, $2, $3);',
         [name, price, type]
     ).then(() => {
         updateRedis(res);
@@ -22,10 +22,10 @@ router.post("/backend/admin/cardapio", middleware, (req, res) => {
     })
 })
 
-router.delete("/backend/admin/cardapio", middleware, (req, res) => {
-    const name: string = req.body.nome;
+router.delete("/backend/admin/menu", middleware, (req, res) => {
+    const name: string = req.body.name;
 
-    database(`DELETE FROM produtos WHERE nome = $1;`, [name]).then(() => {
+    database(`DELETE FROM products WHERE name = $1;`, [name]).then(() => {
         updateRedis(res);
     }).catch((err: object) => {
         console.log(err);
@@ -38,7 +38,7 @@ interface DBres {
 }
 
 function updateRedis(res: any) {
-    database('SELECT * FROM produtos;').then((data: DBres) => {
+    database('SELECT * FROM products;').then((data: DBres) => {
         redis.set('products', JSON.stringify(data.rows)).then(()=> {
             res.sendStatus(200);
         }).catch((err) => {

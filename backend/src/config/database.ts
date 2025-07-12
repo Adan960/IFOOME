@@ -23,4 +23,4 @@ export default async function conectar(sql: string, params?: any[]):Promise<any>
     }
 }
 
-export const dbPool = pool; // Exportando o pool
+export const dbPool = pool;

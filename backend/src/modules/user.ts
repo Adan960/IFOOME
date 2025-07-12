@@ -8,13 +8,13 @@ const jwtSecret: string = process.env.JWT_SECRET || "";
 const router = express.Router();
 
 
-router.get("/backend/cardapio", middleware, async (_,res) => {
+router.get("/backend/menu", middleware, async (_,res) => {
     const value: string | null = await redis.get('products');
 
     if(value != null) {
         res.send(JSON.parse(value));
     } else {
-        database('SELECT * FROM produtos;').then((data: DBres) => {
+        database('SELECT * FROM products;').then((data: DBres) => {
             res.send(data.rows); 
             res.status(200);
             redis.set('products', JSON.stringify(data.rows)).catch(err => console.log(err));
@@ -25,10 +25,10 @@ router.get("/backend/cardapio", middleware, async (_,res) => {
     }
 });
 
-router.get("/backend/pedidos", middleware, (req, res) => {
+router.get("/backend/orders", middleware, (req, res) => {
     const userId: number = getIdByToken(req);
 
-    database('SELECT * FROM pedidos WHERE usuario = $1;', [userId]).then((data) => {
+    database('SELECT * FROM orders WHERE userId = $1;', [userId]).then((data) => {
         res.send(data.rows);
     }).catch(err => {
         console.log(err);
@@ -36,48 +36,42 @@ router.get("/backend/pedidos", middleware, (req, res) => {
     })
 })
 
-router.post("/backend/pedidos", middleware, (req, res) => {
-    const price = req.body.preco * 100;
-    const amount = req.body.quantidade;
-    const name = req.body.nome;
-    const kind = req.body.tipo;
-    const state = req.body.estado;
-    const deliveryDate = req.body.dataEntrega;
+router.post("/backend/orders", middleware, (req: any, res: any) => {
+    const { price, amount, name, kind, state, deliveryDate } = req.body;
     const userId: number = getIdByToken(req);
 
-    if(Number.isInteger(price) && Number.isInteger(amount)) {
-        if(typeof(name) == "string" && typeof(kind) == "string" && typeof(state) == "string" && typeof(deliveryDate) == "string") {
-            if(isValidDate(deliveryDate) && deliveryDate.split("-").map(Number)[0] == new Date().getFullYear() ) {
-                database(
-                    `INSERT INTO pedidos (preco, quantidade, nome, tipo, estado, dataentrega, usuario) 
-                     VALUES($1, $2, $3, $4, $5, $6, $7);`,
-                    [price, amount, name, kind, state, deliveryDate, userId]
-                ).then(() => {
-                    res.sendStatus(200);
-                }).catch(err => {
-                    res.sendStatus(500);
-                    console.log(err);
-                })   
-            } else {
-                res.sendStatus(400);
-            }
-        } else {
-            res.sendStatus(400);
-        }
-    } else {
-        res.sendStatus(400);
+    if (!Number.isInteger(price * 100) || !Number.isInteger(amount)) {
+        return res.sendStatus(400);
     }
-})
 
-router.post("/backend/avaliacao", middleware, (req, res) => {
-    const user: number = getIdByToken(req);
-    const note = parseInt(req.body.nota);
+    if (typeof name !== "string" || typeof kind !== "string" || typeof state !== "string" || typeof deliveryDate !== "string") {
+        return res.sendStatus(400);
+    }
+
+    if (!isValidDate(deliveryDate) || deliveryDate.split("-").map(Number)[0] !== new Date().getFullYear()) {
+        return res.sendStatus(400);
+    }
+
+    database(
+        `INSERT INTO orders (price, amount, name, kind, state, deliveryDate, userId) 
+         VALUES($1, $2, $3, $4, $5, $6, $7);`,
+        [price * 100, amount, name, kind, state, deliveryDate, userId]
+    ).then(() => res.sendStatus(200))
+    .catch((err) => {
+        console.log(err);
+        res.sendStatus(500);
+    });
+});
+
+router.post("/backend/assessment", middleware, (req, res) => {
+    const userId: number = getIdByToken(req);
+    const score = parseInt(req.body.score);
     const sugestion = req.body.sugestao;
 
-    if(typeof(note) == "number" && typeof(sugestion) == "string" && note <= 5) {
+    if(typeof(score) == "number" && typeof(sugestion) == "string" && score <= 5) {
         database(
-            'INSERT INTO avaliacoes(usuario, nota, sugestao) VALUES($1, $2, $3);',
-            [user, note, sugestion]
+            'INSERT INTO reviews(userId, score, sugestao) VALUES($1, $2, $3);',
+            [userId, score, sugestion]
         )
         res.sendStatus(201);
     } else {

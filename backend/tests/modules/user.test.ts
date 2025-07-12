@@ -16,9 +16,9 @@ function fail(reason?: string) {
 }
 
 beforeAll(async () => {
-    await database(`DELETE FROM usuarios WHERE email = $1;`, ["teste12345@gmail.com"]);
+    await database(`DELETE FROM users WHERE email = $1;`, ["teste12345@gmail.com"]);
     await null;
-    await request.post("/backend/criarLogin").send({
+    await request.post("/backend/createLogin").send({
         "email": "teste12345@gmail.com",
         "senha": "12345"
     }).then(async () => {
@@ -38,9 +38,9 @@ beforeAll(async () => {
 })
 
 afterAll(async () => {
-    await database(`DELETE FROM pedidos WHERE tipo = $1;`, ["teste"]);
-    await database(`DELETE FROM avaliacoes WHERE sugestao = $1;`, ["teste"]);
-    await database(`DELETE FROM usuarios WHERE email = $1;`, ["teste12345@gmail.com"]);
+    await database(`DELETE FROM orders WHERE kind = $1;`, ["teste"]);
+    await database(`DELETE FROM reviews WHERE sugestao = $1;`, ["teste"]);
+    await database(`DELETE FROM users WHERE email = $1;`, ["teste12345@gmail.com"]);
     await redis.quit();
     if (dbPool) {
         await dbPool.end();
@@ -49,8 +49,8 @@ afterAll(async () => {
 
 describe("cardápio de usuáio",() => {
     test("Deve logar com sucesso.",() => {
-        return request.get("/backend/cardapio").set('Authorization', `Bearer ${token}`).then((res: any) => {
-            database('SELECT * FROM produtos;').then(data => {
+        return request.get("/backend/menu").set('Authorization', `Bearer ${token}`).then((res: any) => {
+            database('SELECT * FROM products;').then(data => {
                 expect(res.body).toEqual(data.rows);
                 expect(res.statusCode).toEqual(200);
             }).catch((err: any) => {
@@ -61,22 +61,22 @@ describe("cardápio de usuáio",() => {
 
     test("Deve retornar erro 401 pelo token está errado",() => {
         const token = jwt.sign({role: Date.now()}, jwtSecret);
-        return request.get("/backend/cardapio").set('Authorization', `Bearer ${token}`).then((res: any) => {
+        return request.get("/backend/menu").set('Authorization', `Bearer ${token}`).then((res: any) => {
             expect(res.statusCode).toEqual(401);
         })
     });
 
     test("Deve retornar erro 400 por não ter token",() => {
-        return request.get("/backend/cardapio").then((res: any) => {
+        return request.get("/backend/menu").then((res: any) => {
             expect(res.statusCode).toEqual(400);
         });
     });
 })
 
-describe("receber lista de pedidos usuário",() => {
+describe("receber lista de orders usuário",() => {
     test("Deve receber com sucesso os pedidos do usuário",() => {
-        return request.get("/backend/pedidos").set('Authorization', `Bearer ${token}`).then((res: any) => {
-            database('SELECT * FROM pedidos WHERE usuario = $1;', [userId]).then((data) => {
+        return request.get("/backend/orders").set('Authorization', `Bearer ${token}`).then((res: any) => {
+            database('SELECT * FROM orders WHERE userId = $1;', [userId]).then((data) => {
                 expect(res.statusCode).toEqual(200);
                 expect(res.body).toEqual(data.rows);
             }).catch(err => {
@@ -92,13 +92,13 @@ describe("receber lista de pedidos usuário",() => {
 
 describe("Fazer um pedido",() => {
     test("Deve fazer um pedido com sucesso",() => {
-        return request.post("/backend/pedidos").set('Authorization', `Bearer ${token}`).send({
-            "preco": 2.5,
-            "quantidade": 3,
-            "nome": "teste",
-            "tipo": "teste",
-            "estado": "pendente",
-            "dataEntrega": "2025-07-07"
+        return request.post("/backend/orders").set('Authorization', `Bearer ${token}`).send({
+            "price": 2.5,
+            "amount": 3,
+            "name": "teste",
+            "kind": "teste",
+            "state": "pendente",
+            "deliveryDate": "2025-07-07"
         }).then((res: any) => {
             expect(res.statusCode).toEqual(200);
         }).catch((err: any) => {
@@ -108,13 +108,13 @@ describe("Fazer um pedido",() => {
     })
 
     test("Deve retornar erro 400 pela requisição está errada",() => {
-        return request.post("/backend/pedidos").set('Authorization', `Bearer ${token}`).send({
-            "preco": 2.5,
-            "quantidade": "3",
-            "nome": "teste",
-            "tipo": "teste",
-            "estado": "pendente",
-            "dataEntrega": "2025-07-07"
+        return request.post("/backend/orders").set('Authorization', `Bearer ${token}`).send({
+            "price": 2.5,
+            "amount": "3",
+            "name": "teste",
+            "kind": "teste",
+            "state": "pendente",
+            "deliveryDate": "2025-07-07"
         }).then((res: any) => {
             expect(res.statusCode).toEqual(400);
         }).catch((err: any) => {
@@ -124,12 +124,12 @@ describe("Fazer um pedido",() => {
     })
 
     test("Deve retornar erro 400 pela requisição ter um valor faltando",() => {
-        return request.post("/backend/pedidos").set('Authorization', `Bearer ${token}`).send({
-            "preco": 2.5,
-            "quantidade": 3,
-            "nome": "teste",
-            "estado": "pendente",
-            "dataEntrega": "2025-07-07"
+        return request.post("/backend/orders").set('Authorization', `Bearer ${token}`).send({
+            "price": 2.5,
+            "amount": 3,
+            "name": "teste",
+            "state": "pendente",
+            "deliveryDate": "2025-07-07"
         }).then((res: any) => {
             expect(res.statusCode).toEqual(400);
         }).catch((err: any) => {
@@ -139,13 +139,13 @@ describe("Fazer um pedido",() => {
     })
 
     test("Deve retornar erro 400 pela data ser inválida",() => {
-        return request.post("/backend/pedidos").set('Authorization', `Bearer ${token}`).send({
-            "preco": 2.5,
-            "quantidade": 3,
-            "nome": "teste",
-            "tipo": "teste",
-            "estado": "pendente",
-            "dataEntrega": "2025-13-07"
+        return request.post("/backend/orders").set('Authorization', `Bearer ${token}`).send({
+            "price": 2.5,
+            "amount": 3,
+            "name": "teste",
+            "kind": "teste",
+            "state": "pendente",
+            "deliveryDate": "2025-13-07"
         }).then((res: any) => {
             expect(res.statusCode).toEqual(400);
         }).catch((err: any) => {
@@ -157,8 +157,8 @@ describe("Fazer um pedido",() => {
 
 describe("avaliação de usuário",() => {
     test("Deve enviar uma avaliação com sucesso",() => {
-        return request.post("/backend/avaliacao").set('Authorization', `Bearer ${token}`).send({
-            "nota": 5,
+        return request.post("/backend/assessment").set('Authorization', `Bearer ${token}`).send({
+            "score": 5,
             "sugestao": "teste"
         }).then((res: any) => {
             expect(res.statusCode).toEqual(201);
@@ -169,7 +169,7 @@ describe("avaliação de usuário",() => {
     })
 
     test("Deve enviar uma avaliação e receber erro 400 por não ter nota",() => {
-        return request.post("/backend/avaliacao").set('Authorization', `Bearer ${token}`).send({
+        return request.post("/backend/assessment").set('Authorization', `Bearer ${token}`).send({
             "sugestao": "teste"
         }).then((res: any) => {
             expect(res.statusCode).toEqual(400);

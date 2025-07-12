@@ -1,38 +1,38 @@
-CREATE TABLE IF NOT EXISTS usuarios (
+CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     email VARCHAR(255) NOT NULL UNIQUE,
     senha VARCHAR(60) NOT NULL,
     role INT NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS pedidos (
+CREATE TABLE IF NOT EXISTS orders (
     id BIGSERIAL PRIMARY KEY,
-    preco INT NOT NULL,
-    quantidade INT NOT NULL,
-    nome VARCHAR(60) NOT NULL,
-    tipo VARCHAR(60) NOT NULL,
-    estado VARCHAR(20) NOT NULL,
-    dataEntrega DATE NOT NULL,
-    usuario INT NOT NULL,
-    FOREIGN KEY (usuario) REFERENCES usuarios(id)
+    price INT NOT NULL,
+    amount INT NOT NULL,
+    name VARCHAR(60) NOT NULL,
+    kind VARCHAR(60) NOT NULL,
+    state VARCHAR(20) NOT NULL,
+    deliveryDate DATE NOT NULL,
+    userId INT NOT NULL,
+    FOREIGN KEY (userId) REFERENCES users(id)
         ON DELETE CASCADE
         ON UPDATE CASCADE
 );
 
-CREATE TABLE IF NOT EXISTS produtos (
-    nome VARCHAR(60) PRIMARY KEY,
-    preco INT NOT NULL,
-    tipo VARCHAR(60) NOT NULL
+CREATE TABLE IF NOT EXISTS products (
+    name VARCHAR(60) PRIMARY KEY,
+    price INT NOT NULL,
+    kind VARCHAR(60) NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS avaliacoes (
+CREATE TABLE IF NOT EXISTS reviews (
     id SERIAL PRIMARY KEY,
-    usuario INT NOT NULL,
-    nota INT NOT NULL,
+    userId INT NOT NULL,
+    score INT NOT NULL,
     sugestao TEXT NULL,
-    FOREIGN KEY (usuario) REFERENCES usuarios(id)
+    FOREIGN KEY (userId) REFERENCES users(id)
         ON DELETE CASCADE
         ON UPDATE CASCADE
 );
 
-INSERT INTO produtos (nome, preco, tipo) VALUES('coxinha', 250, 'salgado');
+INSERT INTO products (name, price, kind) VALUES('coxinha', 250, 'salgado');

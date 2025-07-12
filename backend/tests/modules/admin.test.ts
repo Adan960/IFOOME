@@ -22,10 +22,10 @@ afterAll(async () => {
 
 describe("Produto no cardápio", () => {
     test("Deve adicionar um produto com sucesso",() => {
-        return request.post("/backend/admin/cardapio").send({
-            "nome": "produtoTeste",
-            "preco": 2.5,
-            "tipo": "testes"
+        return request.post("/backend/admin/menu").send({
+            "name": "produtoTeste",
+            "price": 2.5,
+            "kind": "testes"
         }).then((res: any) => {
             expect(res.statusCode).toEqual(200);
         }).catch((err: any) => {
@@ -34,8 +34,8 @@ describe("Produto no cardápio", () => {
     });
 
     test("Deve remover um produto com sucesso",() => {
-        return request.delete("/backend/admin/cardapio").send({
-            "nome": "produtoTeste"
+        return request.delete("/backend/admin/menu").send({
+            "name": "produtoTeste"
         }).then((res: any) => {
             expect(res.statusCode).toEqual(200);
         }).catch((err: any) => {

@@ -9,7 +9,7 @@ const regex: RegExp = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const jwtSecret: string = process.env.JWT_SECRET || "";
 
 
-router.post("/backend/criarLogin",async (req: any,res: any):Promise<void> => {
+router.post("/backend/createLogin",async (req: any,res: any):Promise<void> => {
     if(req.body && typeof(req.body.email) == "string" && typeof(req.body.senha) == "string") {
         const email: string = req.body.email;
         const password: string = req.body.senha;
@@ -18,7 +18,7 @@ router.post("/backend/criarLogin",async (req: any,res: any):Promise<void> => {
             if(typeof(await findUserByEmail(email)) == "undefined") {
                 const passwordHash: string = await hash(password);
                 database(
-                    'INSERT INTO usuarios(email, senha, role) VALUES($1, $2, $3);',
+                    'INSERT INTO users(email, senha, role) VALUES($1, $2, $3);',
                     [email, passwordHash, 0]
                 );
                 res.sendStatus(201);
@@ -77,7 +77,7 @@ async function authPassword(password: string, hash: string): Promise<boolean> {
 }
 
 async function findUserByEmail(email: string): Promise<undefined | User> {
-    const tst = await database('SELECT * FROM usuarios WHERE email = $1;',[email]);
+    const tst = await database('SELECT * FROM users WHERE email = $1;',[email]);
     return await tst.rows[0];
 }
 

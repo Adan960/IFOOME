@@ -13,22 +13,22 @@ function fail(reason?: string) {
 }
 
 beforeAll(async () => {
-    await database(`DELETE FROM usuarios WHERE email = $1;`, ["teste1234@gmail.com"])
-    await database(`DELETE FROM usuarios WHERE email = $1;`, ["teste1234"])
+    await database(`DELETE FROM users WHERE email = $1;`, ["teste1234@gmail.com"])
+    await database(`DELETE FROM users WHERE email = $1;`, ["teste1234"])
 });
 
 afterAll(async () => {
     await redis.quit();
-    await database(`DELETE FROM usuarios WHERE email = $1;`, ["teste1234@gmail.com"])
-    await database(`DELETE FROM usuarios WHERE email = $1;`, ["teste1234"])
+    await database(`DELETE FROM users WHERE email = $1;`, ["teste1234@gmail.com"])
+    await database(`DELETE FROM users WHERE email = $1;`, ["teste1234"])
     if (dbPool) {
         await dbPool.end();
     }
 });
 
 describe("Cadastro de usuário", () => {
-    test("Deve cadastrar um usuario com sucesso",() => {
-        return request.post("/backend/criarLogin").send({
+    test("Deve cadastrar um usuário com sucesso",() => {
+        return request.post("/backend/createLogin").send({
             "email": "teste1234@gmail.com",
             "senha": "1234"
         }).then((res: any) => {
@@ -39,7 +39,7 @@ describe("Cadastro de usuário", () => {
     });
 
     test("Deve retornar o erro 412 por não haver requisição",() => {
-        return request.post("/backend/criarLogin").send({
+        return request.post("/backend/createLogin").send({
         }).then((res: any) => {
             expect(res.statusCode).toEqual(412);
         }).catch((err: string) => {
@@ -48,7 +48,7 @@ describe("Cadastro de usuário", () => {
     });
 
     test("Deve retornar o erro 400 pelo formato ser invalido",() => {
-        return request.post("/backend/criarLogin").send({
+        return request.post("/backend/createLogin").send({
             "email": "teste1234",
             "senha": "1234"
         }).then((res: any) => {
@@ -59,7 +59,7 @@ describe("Cadastro de usuário", () => {
     });
 
     test("Deve retornar o erro 409 pelo email já existir",() => {
-        return request.post("/backend/criarLogin").send({
+        return request.post("/backend/createLogin").send({
             "email": "teste1234@gmail.com",
             "senha": "1234"
         }).then((res: any) => {
@@ -76,7 +76,7 @@ describe("Login de usuário",() => {
             "email": "teste1234@gmail.com",
             "senha": "1234"
         }).then((res: any) => {
-            database(`SELECT * FROM usuarios WHERE email = $1;`, ["teste1234@gmail.com"]).then((data) => {
+            database(`SELECT * FROM users WHERE email = $1;`, ["teste1234@gmail.com"]).then((data) => {
                 jwt.verify(res.text, jwtSecret, function(_: any, decoded: any) {
                     expect(res.statusCode).toEqual(200);
                     expect(decoded.id).toEqual(data.rows[0].id);
