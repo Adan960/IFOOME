@@ -1,6 +1,6 @@
 import express from 'express';
 import bodyParser from 'body-parser';
-import auth from './modules/auth';
+import auth from './modules/login';
 import user from './modules/user';
 import admin from './modules/admin';
 

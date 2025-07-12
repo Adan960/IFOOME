@@ -2,7 +2,7 @@ import jwt from 'jsonwebtoken';
 
 const jwtSecret: string = process.env.JWT_SECRET || "";
 
-function adminAuth(req: any, res: any, next: any): void {
+export default function adminAuth(req: any, res: any, next: any): void {
     if(req.headers['authorization'] && typeof(req.headers['authorization'].split(" ")[1]) == "string") {
         const token: string = req.headers['authorization'].split(" ")[1];
         if(token) {
@@ -20,5 +20,3 @@ function adminAuth(req: any, res: any, next: any): void {
         res.sendStatus(400);
     }
 }
-
-export default adminAuth;
