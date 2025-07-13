@@ -14,6 +14,34 @@ router.get("/backend/admin/review", middleware, (_, res) => {
     })
 });
 
+// Ainda falta fazer um teste
+router.delete("/backend/admin/review", middleware, (req, res) => {
+    const id: number | undefined = req.body.id;
+    
+    if(typeof(id) == "number") {
+        database(`DELETE FROM reviews WHERE id = $1;`, [id]).then(() => {
+            res.sendStatus(200);
+        }).catch(err => {
+            res.sendStatus(500);
+            console.log(err);
+        });
+    } else {
+        res.sendStatus(400);
+    }
+});
+
+router.get("/backend/admin/orders", middleware, (_, res) => {
+    const today =  new Date();
+    today.setHours(0, 0, 0, 0);
+
+    database('SELECT * FROM orders WHERE deliverydate = $1;',[today]).then((data) => {
+        res.send(data.rows);
+    }).catch(err => {
+        console.log(err);
+        res.sendStatus(500);
+    });
+})
+
 router.post("/backend/admin/menu", middleware, (req, res) => {
     const name: string | undefined = req.body.name;
     const kind: string | undefined = req.body.kind;

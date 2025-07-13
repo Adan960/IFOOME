@@ -62,6 +62,23 @@ describe("Visualizar avaliações", () => {
     });
 });
 
+describe("Visualizar pedidos do dia", () => {
+    test("Deve retornar todos os pedidos do dia com sucesso", () => {
+        return request.get("/backend/admin/orders").set('Authorization', `Bearer ${token}`).then((res: any) => {
+            const today =  new Date();
+            today.setHours(0, 0, 0, 0);
+            
+            database('SELECT * FROM orders WHERE deliverydate = $1;',[today]).then((data) => {
+                expect(res.statusCode).toEqual(200);
+                expect(res.body.length).toEqual(data.rows.length);
+            }).catch(err => {
+                console.log(err);
+                fail(err);
+            });
+        });
+    });
+});
+
 describe("Adicionar produto no cardápio", () => {
     test("Deve adicionar um produto com sucesso",() => {
         return request.post("/backend/admin/menu").set('Authorization', `Bearer ${token}`).send({
