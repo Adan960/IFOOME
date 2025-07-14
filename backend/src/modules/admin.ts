@@ -14,7 +14,6 @@ router.get("/backend/admin/review", middleware, (_, res) => {
     })
 });
 
-// Ainda falta fazer um teste
 router.delete("/backend/admin/review", middleware, (req, res) => {
     const id: number | undefined = req.body.id;
     
@@ -57,6 +56,29 @@ router.post("/backend/admin/menu", middleware, (req, res) => {
             console.log(err);
             res.sendStatus(500);
         });
+    } else {
+        res.sendStatus(400);
+    }
+});
+
+router.put("/backend/admin/menu", middleware, (req, res) => {
+    const { name, kind, newName } = req.body;
+    const price: number | undefined = req.body.price * 100;
+
+    if(typeof(name) == "string") {
+        if(typeof(kind) == "string" && typeof(price) == "number" && typeof(newName) == "string") {
+            database(
+                'UPDATE products SET kind = $2, name = $3, price = $4 WHERE name = $1',
+                [name, kind, newName, price]
+            ).then(() => {
+                updateRedis(res);
+            }).catch(err => {
+                console.log(err);
+                return res.sendStatus(500);
+            })
+        } else {
+            res.sendStatus(400);
+        }
     } else {
         res.sendStatus(400);
     }

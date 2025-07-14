@@ -32,8 +32,8 @@ afterAll(async () => {
     await database(`DELETE FROM orders WHERE kind = $1;`, ["teste"]);
     await database(`DELETE FROM reviews WHERE sugestion = $1;`, ["teste"]);
     await database(`DELETE FROM users WHERE email = $1;`, ["teste12345@gmail.com"]);
-    await dbPool.end()
-    await redis.quit();
+    dbPool.end()
+    redis.quit();
 });
 
 describe("cardápio de usuáio",() => {

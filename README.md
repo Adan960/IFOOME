@@ -14,11 +14,9 @@ Em seguida basta clicar no link que aparecerá no terminal para ser direcionado 
 
 ## DOCKER
 
-Para iniciar o Database é necessário que inicie o docker e para isso basta digitar os comandos abaixo:
+Para iniciar o Database é necessário que inicie o docker e para isso basta digitar o comando abaixo:
 
     docker compose up -d
-    docker compose ls
-    docker compose down
 
 ## TESTES
 

@@ -2,6 +2,7 @@ import database, { dbPool } from '../../src/config/database';
 import redis from '../../src/config/cache';
 import app from '../../src/app';
 import jwt from 'jsonwebtoken';
+import { convertToObject } from 'typescript';
 
 const supertest = require('supertest');
 const request = supertest(app);
@@ -22,11 +23,16 @@ beforeAll(async () => {
         role = data.rows[0].role;
         token = jwt.sign({id: userId, role: role}, jwtSecret);
     });
+
+    database(
+        'INSERT INTO reviews(userId, score, sugestion) VALUES($1, $2, $3);',
+        [userId ,4, "TESTE"]
+    );
 });
 
 afterAll(async () => {
-    await dbPool.end()
-    await redis.quit();
+    dbPool.end()
+    redis.quit();
 });
 
 describe("Visualizar avaliações", () => {
@@ -60,6 +66,27 @@ describe("Visualizar avaliações", () => {
             fail(err);
         })
     });
+});
+
+describe("Deletar avaliações", () => {
+    test("Deve deletar a avaliação com sucesso", () => {
+        database('SELECT * FROM reviews;').then((data) => {
+            for(let i = 0; i < data.rows.length; i++) {
+                if(data.rows[i].sugestion == "TESTE") {
+                    request.delete("/backend/admin/review").set('Authorization', `Bearer ${token}`).send({
+                        id: data.rows[i].id
+                    }).then((res: any) => {
+                        expect(res.statusCode).toEqual(200);
+                    }).catch((err: any) => {
+                        console.log(err);
+                    })
+                }
+            }
+        }).catch((err: any) => {
+            console.log(err);
+            fail(err);
+        });
+    })
 });
 
 describe("Visualizar pedidos do dia", () => {
@@ -96,6 +123,40 @@ describe("Adicionar produto no cardápio", () => {
         return request.post("/backend/admin/menu").set('Authorization', `Bearer ${token}`).send({
             "price": 2.5,
             "kind": "testes"
+        }).then((res: any) => {
+            expect(res.statusCode).toEqual(400);
+        }).catch((err: any) => {
+            fail(err);
+        })
+    });
+});
+
+describe("Editar produto no cardápio", () => {
+    test("Deve editar um produto no cardápio com sucesso",() => {
+        return request.put("/backend/admin/menu").set('Authorization', `Bearer ${token}`).send({
+            "name": "produtoTeste",
+            "price": 3,
+            "kind": "testes",
+            "newName": "produtoTeste"
+        }).then(async (res: any) => {
+            expect(res.statusCode).toEqual(200);
+            request.get("/backend/menu").set('Authorization', `Bearer ${token}`).then((res: any) => {
+                database('SELECT * FROM products;').then(data => {
+                    expect(res.body).toEqual(data.rows);
+                }).catch((err: any) => {
+                    fail(err);
+                })
+            })
+        }).catch((err: any) => {
+            fail(err);
+        })
+    });
+
+    test("Deve retornar erro 400 pela requisição ter elementos faltando",() => {
+        return request.put("/backend/admin/menu").set('Authorization', `Bearer ${token}`).send({
+            "name": "produtoTeste",
+            "price": 3,
+            "newName": "produtoTeste"
         }).then((res: any) => {
             expect(res.statusCode).toEqual(400);
         }).catch((err: any) => {
