@@ -35,27 +35,44 @@ router.get("/backend/orders", middleware, (req, res) => {
     })
 });
 
-router.post("/backend/orders", middleware, (req: any, res: any) => {
-    const { price, amount, name, kind, state, deliveryDate } = req.body;
+router.post("/backend/orders", middleware, async (req: any, res: any) => {
+    const { amount, name, deliveryDate } = req.body; // kind, state, price
+    let price, kind;
     const userId: number = getIdByToken(req);
-
-    if (!Number.isInteger(price * 100) || !Number.isInteger(amount)) {
-        return res.sendStatus(400);
-    }
-
-    if (typeof name !== "string" || typeof kind !== "string" || typeof state !== "string" || typeof deliveryDate !== "string") {
-        return res.sendStatus(400);
-    }
 
     if (!isValidDate(deliveryDate) || deliveryDate.split("-").map(Number)[0] !== new Date().getFullYear()) {
         return res.sendStatus(400);
     }
 
+    await database('SELECT * FROM products WHERE name = $1', [name]).then(data => {
+        if(data.rows.length != 0) {
+            price = data.rows[0].price;
+            kind = data.rows[0].kind;
+        } else {
+            kind = false;
+        }
+    }).catch(err => {
+        console.log(err);
+        res.sendStatus(500);
+    });
+
+    if(kind == false) {
+        return res.sendStatus(400);
+    }
+
+    if (!Number.isInteger(price) || !Number.isInteger(amount)) {
+        return res.sendStatus(400);
+    }
+
+    if (typeof name !== "string" || typeof kind !== "string") {
+        return res.sendStatus(400);
+    }
+
     database(
         `INSERT INTO orders (price, amount, name, kind, state, deliveryDate, userId) 
-         VALUES($1, $2, $3, $4, $5, $6, $7);`,
-        [price * 100, amount, name, kind, state, deliveryDate, userId]
-    ).then(() => res.sendStatus(200))
+        VALUES($1, $2, $3, $4, $5, $6, $7);`,
+        [price, amount, name, kind, "pendente", deliveryDate, userId]
+    ).then(() => res.sendStatus(201))
     .catch((err) => {
         console.log(err);
         res.sendStatus(500);

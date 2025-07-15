@@ -29,7 +29,7 @@ router.delete("/backend/admin/review", middleware, (req, res) => {
     }
 });
 
-router.get("/backend/admin/orders", middleware, (_, res) => {
+router.get("/backend/admin/orders", middleware, (_, res) => { 
     const today =  new Date();
     today.setHours(0, 0, 0, 0);
 
@@ -51,7 +51,7 @@ router.post("/backend/admin/menu", middleware, (req, res) => {
             'INSERT INTO products(name, price, kind) VALUES($1, $2, $3);',
             [name, price, kind]
         ).then(() => {
-            updateRedis(res);
+            updateRedis(201, res);
         }).catch((err: object) => {
             console.log(err);
             res.sendStatus(500);
@@ -71,7 +71,7 @@ router.put("/backend/admin/menu", middleware, (req, res) => {
                 'UPDATE products SET kind = $2, name = $3, price = $4 WHERE name = $1',
                 [name, kind, newName, price]
             ).then(() => {
-                updateRedis(res);
+                updateRedis(200, res);
             }).catch(err => {
                 console.log(err);
                 return res.sendStatus(500);
@@ -89,7 +89,7 @@ router.delete("/backend/admin/menu", middleware, (req, res) => {
 
     if(typeof(name) == "string") {
         database(`DELETE FROM products WHERE name = $1;`, [name]).then(() => {
-            updateRedis(res);
+            updateRedis(200, res);
         }).catch((err: object) => {
             console.log(err);
             res.sendStatus(500);
@@ -103,10 +103,10 @@ interface DBres {
     rows: object[]
 }
 
-function updateRedis(res: any) {
+function updateRedis(httpStatus: number, res: any): void {
     database('SELECT * FROM products;').then((data: DBres) => {
         redis.set('products', JSON.stringify(data.rows)).then(()=> {
-            res.sendStatus(200);
+            res.sendStatus(httpStatus);
         }).catch((err) => {
             console.log(err);
             res.sendStatus(500);

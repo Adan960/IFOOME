@@ -77,9 +77,7 @@ describe("Deletar avaliações", () => {
                         id: data.rows[i].id
                     }).then((res: any) => {
                         expect(res.statusCode).toEqual(200);
-                    }).catch((err: any) => {
-                        console.log(err);
-                    })
+                    }).catch((err: any) => console.log(err))
                 }
             }
         }).catch((err: any) => {
@@ -113,7 +111,7 @@ describe("Adicionar produto no cardápio", () => {
             "price": 2.5,
             "kind": "testes"
         }).then((res: any) => {
-            expect(res.statusCode).toEqual(200);
+            expect(res.statusCode).toEqual(201);
         }).catch((err: any) => {
             fail(err);
         })

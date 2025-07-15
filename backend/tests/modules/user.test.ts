@@ -80,16 +80,15 @@ describe("receber lista de orders usuário",() => {
 })
 
 describe("Fazer um pedido",() => {
+    const today =  new Date();
+    today.setHours(0, 0, 0, 0);
     test("Deve fazer um pedido com sucesso",() => {
         return request.post("/backend/orders").set('Authorization', `Bearer ${token}`).send({
-            "price": 2.5,
             "amount": 3,
-            "name": "teste",
-            "kind": "teste",
-            "state": "pendente",
-            "deliveryDate": "2025-07-07"
+            "name": "coxinha",
+            "deliveryDate": today
         }).then((res: any) => {
-            expect(res.statusCode).toEqual(200);
+            expect(res.statusCode).toEqual(201);
         }).catch((err: any) => {
             console.log(err);
             fail(err);
@@ -98,12 +97,9 @@ describe("Fazer um pedido",() => {
 
     test("Deve retornar erro 400 pela requisição está errada",() => {
         return request.post("/backend/orders").set('Authorization', `Bearer ${token}`).send({
-            "price": 2.5,
             "amount": "3",
-            "name": "teste",
-            "kind": "teste",
-            "state": "pendente",
-            "deliveryDate": "2025-07-07"
+            "name": "coxinha",
+            "deliveryDate": today
         }).then((res: any) => {
             expect(res.statusCode).toEqual(400);
         }).catch((err: any) => {
@@ -112,29 +108,11 @@ describe("Fazer um pedido",() => {
         })
     })
 
-    test("Deve retornar erro 400 pela requisição ter um valor faltando",() => {
+    test("Deve retornar erro 400 pela data de entrega não ser deste ano",() => {
         return request.post("/backend/orders").set('Authorization', `Bearer ${token}`).send({
-            "price": 2.5,
             "amount": 3,
-            "name": "teste",
-            "state": "pendente",
-            "deliveryDate": "2025-07-07"
-        }).then((res: any) => {
-            expect(res.statusCode).toEqual(400);
-        }).catch((err: any) => {
-            console.log(err);
-            fail(err);
-        })
-    })
-
-    test("Deve retornar erro 400 pela data ser inválida",() => {
-        return request.post("/backend/orders").set('Authorization', `Bearer ${token}`).send({
-            "price": 2.5,
-            "amount": 3,
-            "name": "teste",
-            "kind": "teste",
-            "state": "pendente",
-            "deliveryDate": "2025-13-07"
+            "name": "coxinha",
+            "deliveryDate": "2010-07-07"
         }).then((res: any) => {
             expect(res.statusCode).toEqual(400);
         }).catch((err: any) => {
