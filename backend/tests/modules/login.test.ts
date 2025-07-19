@@ -17,13 +17,6 @@ beforeAll(async () => {
     await database(`DELETE FROM users WHERE email = $1;`, ["teste1234"])
 });
 
-afterAll(async () => {
-    await database(`DELETE FROM users WHERE email = $1;`, ["teste1234@gmail.com"])
-    await database(`DELETE FROM users WHERE email = $1;`, ["teste1234"])
-    dbPool.end()
-    redis.quit();
-});
-
 describe("Cadastro de usuário", () => {
     test("Deve cadastrar um usuário com sucesso",() => {
         return request.post("/backend/createLogin").send({
@@ -120,4 +113,11 @@ describe("Login de usuário",() => {
             fail(err);
         })
     });
+});
+
+afterAll(async () => {
+    await database(`DELETE FROM users WHERE email = $1;`, ["teste1234@gmail.com"])
+    await database(`DELETE FROM users WHERE email = $1;`, ["teste1234"])
+    dbPool.end()
+    redis.quit();
 });

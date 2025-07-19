@@ -9,26 +9,36 @@ const router = express.Router();
 
 
 router.get("/backend/menu", middleware, async (_,res) => {
-    const value: string | null = await redis.get('products');
+    let value: string | null = await redis.get('products');
 
     if(value != null) {
         res.send(JSON.parse(value));
     } else {
-        database('SELECT * FROM products;').then((data: DBres) => {
-            res.send(data.rows); 
-            redis.set('products', JSON.stringify(data.rows)).catch(err => console.log(err));
-        }).catch((err: any) => {
-            console.log(err);
-            res.sendStatus(500);
-        })
+        await updateRedis();
+        value = await redis.get('products');
+    }
+
+    if(value != null) {
+        res.send(JSON.parse(value));
+    } else {
+        res.sendStatus(500);
     }
 });
 
 router.get("/backend/orders", middleware, (req, res) => {
-    const userId: number = getIdByToken(req);
+    const user_id: number = getIdByToken(req);
 
-    database('SELECT * FROM orders WHERE userId = $1;', [userId]).then((data) => {
-        res.send(data.rows);
+    database(`SELECT (id, state, delivery_date, total_price) FROM orders WHERE user_id = ${user_id};`).then(data => {
+        const order = data.rows;
+        if(order.length >= 1) {
+            database(`SELECT * FROM order_items WHERE order_id = ${order.id};`).then(data2 => {
+                const order_items = data2.rows;
+
+                res.send(order + order_items);
+            })
+        } else {
+            res.sendStatus(204);
+        }
     }).catch(err => {
         console.log(err);
         res.sendStatus(500);
@@ -36,58 +46,77 @@ router.get("/backend/orders", middleware, (req, res) => {
 });
 
 router.post("/backend/orders", middleware, async (req: any, res: any) => {
-    const { amount, name, deliveryDate } = req.body; // kind, state, price
-    let price, kind;
-    const userId: number = getIdByToken(req);
+    let products: any = await redis.get('products');
+    let totalPrice: number = 0;
+    let validNames: string[] = [];
+    let prices: number[] = [];
+    const deliveryDate: string = req.body.deliveryDate;
+    const orderItems: orderItems[] = req.body.orderItems;
+    const user_id: number = getIdByToken(req);
 
-    if (!isValidDate(deliveryDate) || deliveryDate.split("-").map(Number)[0] !== new Date().getFullYear()) {
+    if(typeof(deliveryDate) != "string" || !isValidDate(deliveryDate)) {
         return res.sendStatus(400);
     }
 
-    await database('SELECT * FROM products WHERE name = $1', [name]).then(data => {
-        if(data.rows.length != 0) {
-            price = data.rows[0].price;
-            kind = data.rows[0].kind;
-        } else {
-            kind = false;
+    if(typeof(orderItems) != "object" || orderItems.length == 0) {
+        return res.sendStatus(400);
+    }
+
+    if(products == null) {
+        await updateRedis();
+        products = await redis.get('products');
+    }
+
+    if(products == null) {
+        return res.sendStatus(204);
+    }
+
+    products = JSON.parse(products);
+    
+    for(let i = 0; i < products.length; i++) {
+        validNames.push(products[i].name);
+    }
+    for(let i = 0; i < orderItems.length; i++) {
+        const productName: string = orderItems[i].productName;
+        const quantity: number = orderItems[i].quantity;
+        const index: number = validNames.indexOf(productName);
+        
+        if(typeof(quantity) != "number" || quantity <= 0 || index == -1) {
+            return res.sendStatus(400);
         }
+        prices.push(products[index].price);
+        totalPrice += products[index].price * quantity;
+    }
+
+    // AQUI VAI FICAR A API DO MERCADO PAGO
+
+    database('INSERT INTO orders (state, delivery_date, user_id, total_price) VALUES($1, $2, $3, $4) RETURNING id;',
+        ["pendente", new Date(deliveryDate), user_id, totalPrice]
+    ).then((data) => {
+        for(let i = 0; i < orderItems.length; i++) {
+            database('INSERT INTO order_items (order_id, product_name, quantity, unit_price) VALUES($1, $2, $3, $4)',
+                [data.rows[0].id, orderItems[i].productName, orderItems[i].quantity, prices[i]]
+            ).catch(err => {
+                console.log(err);
+                return res.sendStatus(500);
+            });
+        }
+        res.sendStatus(201);
     }).catch(err => {
-        console.log(err);
-        res.sendStatus(500);
-    });
-
-    if(kind == false) {
-        return res.sendStatus(400);
-    }
-
-    if (!Number.isInteger(price) || !Number.isInteger(amount)) {
-        return res.sendStatus(400);
-    }
-
-    if (typeof name !== "string" || typeof kind !== "string") {
-        return res.sendStatus(400);
-    }
-
-    database(
-        `INSERT INTO orders (price, amount, name, kind, state, deliveryDate, userId) 
-        VALUES($1, $2, $3, $4, $5, $6, $7);`,
-        [price, amount, name, kind, "pendente", deliveryDate, userId]
-    ).then(() => res.sendStatus(201))
-    .catch((err) => {
         console.log(err);
         res.sendStatus(500);
     });
 });
 
 router.post("/backend/review", middleware, (req, res) => {
-    const userId: number = getIdByToken(req);
+    const user_id: number = getIdByToken(req);
     const score = parseInt(req.body.score);
     const sugestion = req.body.sugestion;
 
     if(typeof(score) == "number" && typeof(sugestion) == "string" && score <= 5) {
         database(
-            'INSERT INTO reviews(userId, score, sugestion) VALUES($1, $2, $3);',
-            [userId, score, sugestion]
+            'INSERT INTO reviews(user_id, score, sugestion) VALUES($1, $2, $3);',
+            [user_id, score, sugestion]
         )
         res.sendStatus(201);
     } else {
@@ -97,10 +126,29 @@ router.post("/backend/review", middleware, (req, res) => {
 
 
 interface DBres {rows: object[]}
+interface orderItems {
+    productName: string,
+    quantity: number
+}
+
+async function updateRedis(): Promise<void> {
+    await database('SELECT * FROM products;').then(async (data: DBres) => { 
+        redis.set('products', JSON.stringify(data.rows)).catch(err => console.log(err));
+    }).catch((err: any) => {
+        console.log(err);
+    });
+}
 
 function isValidDate(dateString: string): boolean {
     const date = new Date(dateString);
-    return !isNaN(date.getTime());
+    const thisDate = new Date();
+    const thisYear = thisDate.getFullYear();
+
+    if(isNaN(date.getTime()) || parseInt(dateString.split("-")[0]) != thisYear || dateString.length < 10) {
+        return false
+    } else {
+        return true
+    }
 }
 
 function getIdByToken(req: any): number {

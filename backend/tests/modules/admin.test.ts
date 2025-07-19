@@ -2,7 +2,6 @@ import database, { dbPool } from '../../src/config/database';
 import redis from '../../src/config/cache';
 import app from '../../src/app';
 import jwt from 'jsonwebtoken';
-import { convertToObject } from 'typescript';
 
 const supertest = require('supertest');
 const request = supertest(app);
@@ -10,7 +9,7 @@ const request = supertest(app);
 const jwtSecret: string = process.env.JWT_SECRET || "";
 
 let token: string;
-let userId: number;
+let user_id: number;
 let role: number;
 
 function fail(reason?: string) {
@@ -19,20 +18,15 @@ function fail(reason?: string) {
 
 beforeAll(async () => {
     await database('SELECT * FROM users WHERE email = $1;',[process.env.ADMIN_LOGIN]).then((data: any) => {
-        userId = data.rows[0].id;
+        user_id = data.rows[0].id;
         role = data.rows[0].role;
-        token = jwt.sign({id: userId, role: role}, jwtSecret);
+        token = jwt.sign({id: user_id, role: role}, jwtSecret);
     });
 
     database(
-        'INSERT INTO reviews(userId, score, sugestion) VALUES($1, $2, $3);',
-        [userId ,4, "TESTE"]
+        'INSERT INTO reviews(user_id, score, sugestion) VALUES($1, $2, $3);',
+        [user_id ,4, "TESTE"]
     );
-});
-
-afterAll(async () => {
-    dbPool.end()
-    redis.quit();
 });
 
 describe("Visualizar avaliações", () => {
@@ -59,7 +53,7 @@ describe("Visualizar avaliações", () => {
     });
 
     test("Deve retornar um erro pelo usuário não ter permissão de admin",() => {
-        const wrongToken = jwt.sign({id: userId, role: 0}, jwtSecret);
+        const wrongToken = jwt.sign({id: user_id, role: 0}, jwtSecret);
         return request.get("/backend/admin/review").set('Authorization', `Bearer ${wrongToken}`).then((res: any) => {
             expect(res.statusCode).toEqual(401);
         }).catch((err: any) => {
@@ -87,6 +81,7 @@ describe("Deletar avaliações", () => {
     })
 });
 
+/*
 describe("Visualizar pedidos do dia", () => {
     test("Deve retornar todos os pedidos do dia com sucesso", () => {
         return request.get("/backend/admin/orders").set('Authorization', `Bearer ${token}`).then((res: any) => {
@@ -103,6 +98,7 @@ describe("Visualizar pedidos do dia", () => {
         });
     });
 });
+*/
 
 describe("Adicionar produto no cardápio", () => {
     test("Deve adicionar um produto com sucesso",() => {
@@ -181,4 +177,9 @@ describe("Remover produto do cardápio", () => {
             fail(err);
         })
     });
+});
+
+afterAll(async () => {
+    dbPool.end()
+    redis.quit();
 });

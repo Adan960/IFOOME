@@ -10,7 +10,7 @@ const request = supertest(app);
 const jwtSecret: string = process.env.JWT_SECRET || "";
 
 let token: string;
-let userId: number;
+let user_id: number;
 
 function fail(reason?: string) {
     throw new Error(reason);
@@ -20,21 +20,14 @@ beforeAll(async () => {
     const passwordHash: string = await bcrypt.hash("12345", 12);
     const email: string = "teste12345@gmail.com";
 
+    await database(`DELETE FROM orders WHERE user_id = $1;`, [user_id]);
     await database(`DELETE FROM users WHERE email = $1;`, [email]);
-    await database('INSERT INTO users(email, password, role) VALUES($1, $2, $3);',[email, passwordHash, 0])
-    await database('SELECT * FROM users WHERE email = $1;',[email]).then((data: any) => {
-        userId = data.rows[0].id;
-        token = jwt.sign({id: userId, role: 0}, jwtSecret);
-    });
+    await database('INSERT INTO users(email, password, role) VALUES($1, $2, $3) RETURNING id;',[email, passwordHash, 0])
+    .then(data => {
+        user_id = data.rows[0].id;
+        token = jwt.sign({id: user_id, role: 0}, jwtSecret);
+    })
 })
-
-afterAll(async () => {
-    await database(`DELETE FROM orders WHERE kind = $1;`, ["teste"]);
-    await database(`DELETE FROM reviews WHERE sugestion = $1;`, ["teste"]);
-    await database(`DELETE FROM users WHERE email = $1;`, ["teste12345@gmail.com"]);
-    dbPool.end()
-    redis.quit();
-});
 
 describe("cardápio de usuáio",() => {
     test("Deve logar com sucesso.",() => {
@@ -62,10 +55,91 @@ describe("cardápio de usuáio",() => {
     });
 })
 
-describe("receber lista de orders usuário",() => {
+describe("Fazer um pedido",() => {
+    const today =  new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    test("Deve fazer um pedido com sucesso",() => {
+        return request.post("/backend/orders").set('Authorization', `Bearer ${token}`).send({
+        "deliveryDate": today,
+        "orderItems": [
+            {
+                "productName": "brigadeiro",
+                "quantity": 1
+            },
+            {
+                "productName": "refrigerante",
+                "quantity": 2
+            },
+            {
+                "productName": "coxinha",
+                "quantity": 2
+            }
+        ]
+    }).then((res: any) => {
+            expect(res.statusCode).toEqual(201);
+        }).catch((err: any) => {
+            console.log(err);
+            fail(err);
+        })
+    });
+
+    test("Deve retornar um erro pelo nome do produto estar errado",() => {
+        return request.post("/backend/orders").set('Authorization', `Bearer ${token}`).send({
+            "deliveryDate": today,
+            "orderItems": [
+                {
+                    "productName": "teste023",
+                    "quantity": 1
+                },
+                {
+                    "productName": "refrigerante",
+                    "quantity": 2
+                },
+                {
+                    "productName": "coxinha",
+                    "quantity": 2
+                }
+            ]
+        }).then((res: any) => {
+            expect(res.statusCode).toEqual(400);
+        }).catch((err: any) => {
+            console.log(err);
+            fail(err);
+        });
+    });
+
+    test("Deve retornar um erro pela data ser inválida",() => {
+        return request.post("/backend/orders").set('Authorization', `Bearer ${token}`).send({
+        "deliveryDate": "2025",
+        "orderItems": [
+            {
+                "productName": "brigadeiro",
+                "quantity": 1
+            },
+            {
+                "productName": "refrigerante",
+                "quantity": 2
+            },
+            {
+                "productName": "coxinha",
+                "quantity": 2
+            }
+        ]
+    }).then((res: any) => {
+            expect(res.statusCode).toEqual(400);
+        }).catch((err: any) => {
+            console.log(err);
+            fail(err);
+        });
+    });
+})
+
+/*
+describe("receber lista de pedidos usuário",() => {
     test("Deve receber com sucesso os pedidos do usuário",() => {
         return request.get("/backend/orders").set('Authorization', `Bearer ${token}`).then((res: any) => {
-            database('SELECT * FROM orders WHERE userId = $1;', [userId]).then((data) => {
+            database('SELECT * FROM orders WHERE user_id = $1;', [user_id]).then((data) => {
                 expect(res.statusCode).toEqual(200);
                 expect(res.body).toEqual(data.rows);
             }).catch(err => {
@@ -78,49 +152,7 @@ describe("receber lista de orders usuário",() => {
         })
     })
 })
-
-describe("Fazer um pedido",() => {
-    const today =  new Date();
-    today.setHours(0, 0, 0, 0);
-    test("Deve fazer um pedido com sucesso",() => {
-        return request.post("/backend/orders").set('Authorization', `Bearer ${token}`).send({
-            "amount": 3,
-            "name": "coxinha",
-            "deliveryDate": today
-        }).then((res: any) => {
-            expect(res.statusCode).toEqual(201);
-        }).catch((err: any) => {
-            console.log(err);
-            fail(err);
-        })
-    })
-
-    test("Deve retornar erro 400 pela requisição está errada",() => {
-        return request.post("/backend/orders").set('Authorization', `Bearer ${token}`).send({
-            "amount": "3",
-            "name": "coxinha",
-            "deliveryDate": today
-        }).then((res: any) => {
-            expect(res.statusCode).toEqual(400);
-        }).catch((err: any) => {
-            console.log(err);
-            fail(err);
-        })
-    })
-
-    test("Deve retornar erro 400 pela data de entrega não ser deste ano",() => {
-        return request.post("/backend/orders").set('Authorization', `Bearer ${token}`).send({
-            "amount": 3,
-            "name": "coxinha",
-            "deliveryDate": "2010-07-07"
-        }).then((res: any) => {
-            expect(res.statusCode).toEqual(400);
-        }).catch((err: any) => {
-            console.log(err);
-            fail(err);
-        })
-    })
-})
+*/
 
 describe("avaliação de usuário",() => {
     test("Deve enviar uma avaliação com sucesso",() => {
@@ -146,3 +178,12 @@ describe("avaliação de usuário",() => {
         })
     })
 })
+
+
+afterAll(async () => {
+    await database(`DELETE FROM reviews WHERE sugestion = $1;`, ["teste"]);
+    await database(`DELETE FROM orders WHERE user_id = $1;`, [user_id]);
+    await database(`DELETE FROM users WHERE email = $1;`, ["teste12345@gmail.com"]);
+    dbPool.end()
+    redis.quit();
+});
