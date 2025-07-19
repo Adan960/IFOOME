@@ -79,7 +79,6 @@ describe("Fazer um pedido",() => {
     }).then((res: any) => {
             expect(res.statusCode).toEqual(201);
         }).catch((err: any) => {
-            console.log(err);
             fail(err);
         })
     });
@@ -104,7 +103,6 @@ describe("Fazer um pedido",() => {
         }).then((res: any) => {
             expect(res.statusCode).toEqual(400);
         }).catch((err: any) => {
-            console.log(err);
             fail(err);
         });
     });
@@ -129,30 +127,44 @@ describe("Fazer um pedido",() => {
     }).then((res: any) => {
             expect(res.statusCode).toEqual(400);
         }).catch((err: any) => {
-            console.log(err);
             fail(err);
         });
     });
 })
 
-/*
+
 describe("receber lista de pedidos usuário",() => {
     test("Deve receber com sucesso os pedidos do usuário",() => {
-        return request.get("/backend/orders").set('Authorization', `Bearer ${token}`).then((res: any) => {
-            database('SELECT * FROM orders WHERE user_id = $1;', [user_id]).then((data) => {
+        return request.get("/backend/orders").set('Authorization', `Bearer ${token}`).then(async (res: any) => {
+            try {
+                const head = await database(`SELECT * FROM orders WHERE user_id = ${user_id};`);
+        
+                const promises = head.rows.map(async (row: any, i: number) => {
+                    const body = await database(`SELECT * FROM order_items WHERE order_id = ${row.id};`);
+                    return {
+                        pedido: i + 1,
+                        head: row,
+                        body: body.rows
+                    };
+                });
+
+                const dbRes: any[] = await Promise.all(promises);
+
+                for(let i = 0; i < dbRes.length; i++){
+                    dbRes[i].head.delivery_date = null;
+                    res.body[i].head.delivery_date = null; 
+                }
+        
                 expect(res.statusCode).toEqual(200);
-                expect(res.body).toEqual(data.rows);
-            }).catch(err => {
-                console.log(err);
+                expect(res.body).toEqual(dbRes);
+            } catch (err: any) {
                 fail(err);
-            })
+            }
         }).catch((err: any) => {
-            console.log(err);
             fail(err);
         })
     })
 })
-*/
 
 describe("avaliação de usuário",() => {
     test("Deve enviar uma avaliação com sucesso",() => {
@@ -162,7 +174,6 @@ describe("avaliação de usuário",() => {
         }).then((res: any) => {
             expect(res.statusCode).toEqual(201);
         }).catch((err: any) => {
-            console.log(err);
             fail(err);
         })
     })
@@ -173,7 +184,6 @@ describe("avaliação de usuário",() => {
         }).then((res: any) => {
             expect(res.statusCode).toEqual(400);
         }).catch((err: any) => {
-            console.log(err);
             fail(err);
         })
     })

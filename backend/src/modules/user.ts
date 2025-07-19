@@ -25,24 +25,29 @@ router.get("/backend/menu", middleware, async (_,res) => {
     }
 });
 
-router.get("/backend/orders", middleware, (req, res) => {
-    const user_id: number = getIdByToken(req);
-
-    database(`SELECT (id, state, delivery_date, total_price) FROM orders WHERE user_id = ${user_id};`).then(data => {
-        const order = data.rows;
-        if(order.length >= 1) {
-            database(`SELECT * FROM order_items WHERE order_id = ${order.id};`).then(data2 => {
-                const order_items = data2.rows;
-
-                res.send(order + order_items);
-            })
-        } else {
-            res.sendStatus(204);
+router.get("/backend/orders", middleware, async (req: any, res: any) => {
+    try {
+        const user_id: number = getIdByToken(req);
+        const head = await database(`SELECT * FROM orders WHERE user_id = ${user_id};`);
+        
+        if (head.rows.length == 0) {
+            return res.sendStatus(204);
         }
-    }).catch(err => {
+
+        const promises = head.rows.map(async (row: any, i: number) => {
+            const body = await database(`SELECT * FROM order_items WHERE order_id = ${row.id};`);
+            return {
+                pedido: i + 1,
+                head: row,
+                body: body.rows
+            };
+        });
+
+        res.send(await Promise.all(promises));
+    } catch (err) {
         console.log(err);
         res.sendStatus(500);
-    })
+    }
 });
 
 router.post("/backend/orders", middleware, async (req: any, res: any) => {
@@ -87,8 +92,6 @@ router.post("/backend/orders", middleware, async (req: any, res: any) => {
         prices.push(products[index].price);
         totalPrice += products[index].price * quantity;
     }
-
-    // AQUI VAI FICAR A API DO MERCADO PAGO
 
     database('INSERT INTO orders (state, delivery_date, user_id, total_price) VALUES($1, $2, $3, $4) RETURNING id;',
         ["pendente", new Date(deliveryDate), user_id, totalPrice]
