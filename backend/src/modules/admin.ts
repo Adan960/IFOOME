@@ -29,16 +29,43 @@ router.delete("/backend/admin/review", middleware, (req, res) => {
     }
 });
 
-router.get("/backend/admin/orders", middleware, (_, res) => { 
-    const today =  new Date();
-    today.setHours(0, 0, 0, 0);
+router.get("/backend/admin/orders/today", middleware, async (_: any, res: any) => { 
+    try {
+        const today = new Date();
+        const todayString = today.toISOString().split('T')[0];
+        const orders = await database(
+            `SELECT id, state, total_price, user_id, payment_method FROM orders WHERE delivery_date::date = $1::date;`,
+            [todayString]
+        );
+        
+        if (orders.rows.length === 0) {
+            return res.sendStatus(204);
+        }
 
-    database('SELECT * FROM orders WHERE deliverydate = $1;',[today]).then((data) => {
-        res.send(data.rows);
-    }).catch(err => {
-        console.log(err);
+        const ordersWithItems = await Promise.all(
+            orders.rows.map(async (order: any, index: any) => {
+                const userName = await database(`SELECT name FROM users WHERE id = ${order.user_id}`);
+                const items = await database(`SELECT * FROM order_items WHERE order_id = ${order.id};`);
+                
+                return {
+                    head: {
+                        "pedido": index+1,
+                        "user": userName.rows[0].name,
+                        "state": order.state,
+                        "total_price": order.total_price,
+                        "payment_method": order.payment_method
+                    },
+                    body: items.rows
+                };
+            })
+        );
+
+        res.send(ordersWithItems);
+        
+    } catch (err) {
+        console.error(err);
         res.sendStatus(500);
-    });
+    }
 });
 
 router.put("/backend/admin/orders", middleware, (req, res) => {

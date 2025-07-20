@@ -99,7 +99,7 @@ router.post("/backend/orders", middleware, async (req: any, res: any) => {
     }
 
     database('INSERT INTO orders (state, delivery_date, user_id, total_price, payment_method) VALUES($1, $2, $3, $4, $5) RETURNING id;',
-        ["pendente", new Date(deliveryDate), user_id, totalPrice, paymentMethod]
+        ["pendente", new Date(deliveryDate).toISOString().split('T')[0], user_id, totalPrice, paymentMethod]
     ).then((data) => {
         for(let i = 0; i < orderItems.length; i++) {
             database('INSERT INTO order_items (order_id, product_name, quantity, unit_price) VALUES($1, $2, $3, $4)',

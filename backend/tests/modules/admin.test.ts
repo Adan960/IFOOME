@@ -81,24 +81,45 @@ describe("Deletar avaliações", () => {
     })
 });
 
-/*
-describe("Visualizar pedidos do dia", () => {
-    test("Deve retornar todos os pedidos do dia com sucesso", () => {
-        return request.get("/backend/admin/orders").set('Authorization', `Bearer ${token}`).then((res: any) => {
-            const today =  new Date();
-            today.setHours(0, 0, 0, 0);
-            
-            database('SELECT * FROM orders WHERE deliverydate = $1;',[today]).then((data) => {
+describe("Visualizar pedidos do dia",() => {
+    test("Deve retornar todos os pedidos do dia com sucesso",() => {
+        return request.get("/backend/admin/orders/today").set('Authorization', `Bearer ${token}`).then(async (res: any) => {
+            try{
+                const today = new Date();
+                const todayString = today.toISOString().split('T')[0];
+                const orders = await database(
+                    `SELECT id, state, total_price, user_id, payment_method FROM orders WHERE delivery_date::date = $1::date;`,
+                    [todayString]
+                );
+
+                const ordersWithItems = await Promise.all(
+                    orders.rows.map(async (order: any, index: any) => {
+                        const userName = await database(`SELECT name FROM users WHERE id = ${order.user_id}`);
+                        const items = await database(`SELECT * FROM order_items WHERE order_id = ${order.id};`);
+                        
+                        return {
+                            head: {
+                                "pedido": index+1,
+                                "user": userName.rows[0].name,
+                                "state": order.state,
+                                "total_price": order.total_price,
+                                "payment_method": order.payment_method
+                            },
+                            body: items.rows
+                        };
+                    })
+                );
+
                 expect(res.statusCode).toEqual(200);
-                expect(res.body.length).toEqual(data.rows.length);
-            }).catch(err => {
-                console.log(err);
+                expect(res.body[1]).toEqual(ordersWithItems[1]);
+            } catch(err: any) {
                 fail(err);
-            });
-        });
-    });
+            }
+        }).catch((err: any) => {
+            fail(err);
+        })
+    })
 });
-*/
 
 describe("Adicionar produto no cardápio", () => {
     test("Deve adicionar um produto com sucesso",() => {
