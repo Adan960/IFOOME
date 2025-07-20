@@ -11,16 +11,21 @@ const jwtSecret: string = process.env.JWT_SECRET || "";
 router.post("/backend/createLogin", middleware ,async (req, res):Promise<void> => {
     const email: string = req.body.email;
     const password: string = req.body.password;
+    const name: string | undefined = req.body.name;
 
-    if(typeof(await findUserByEmail(email)) == "undefined") {
-        const passwordHash: string = await hash(password);
-        database(
-            'INSERT INTO users(email, password, role) VALUES($1, $2, $3);',
-            [email, passwordHash, 0]
-        );
-        res.sendStatus(201);
+    if(typeof(name) == "string") {
+        if(typeof(await findUserByEmail(email)) == "undefined") {
+            const passwordHash: string = await hash(password);
+            database(
+                'INSERT INTO users(name, email, password, role) VALUES($1, $2, $3, $4);',
+                [name, email, passwordHash, 0]
+            );
+            res.sendStatus(201);
+        } else {
+            res.sendStatus(409);
+        }    
     } else {
-        res.sendStatus(409);
+        res.sendStatus(400);
     }
 });
 

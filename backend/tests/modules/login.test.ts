@@ -21,6 +21,7 @@ describe("Cadastro de usuário", () => {
     test("Deve cadastrar um usuário com sucesso",() => {
         return request.post("/backend/createLogin").send({
             "email": "teste1234@gmail.com",
+            "name": "teste",
             "password": "1234"
         }).then((res: any) => {
             expect(res.statusCode).toEqual(201);
@@ -41,6 +42,7 @@ describe("Cadastro de usuário", () => {
     test("Deve retornar o erro 400 pelo formato ser invalido",() => {
         return request.post("/backend/createLogin").send({
             "email": "teste1234",
+            "name": "teste",
             "password": "1234"
         }).then((res: any) => {
             expect(res.statusCode).toEqual(400);
@@ -52,6 +54,7 @@ describe("Cadastro de usuário", () => {
     test("Deve retornar o erro 409 pelo email já existir",() => {
         return request.post("/backend/createLogin").send({
             "email": "teste1234@gmail.com",
+            "name": "teste",
             "password": "1234"
         }).then((res: any) => {
             expect(res.statusCode).toEqual(409);

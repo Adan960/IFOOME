@@ -10,9 +10,8 @@ app.use(bodyParser.urlencoded())
 app.use(bodyParser.json());
 
 // Tratamento de erros global
-app.use((err: any, _: any, res: any, next: any) => {
-    res.sendStatus(400)
-    .json({"status": "Requisição inválida", "erro:": err.message});
+app.use((err: any, _: any, res: any, _next: any) => {
+    res.sendStatus(400).json({"status": "Requisição inválida", "erro:": err.message});
 });
 
 app.use("/",user);

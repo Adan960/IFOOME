@@ -39,7 +39,11 @@ router.get("/backend/admin/orders", middleware, (_, res) => {
         console.log(err);
         res.sendStatus(500);
     });
-})
+});
+
+router.put("/backend/admin/orders", middleware, (req, res) => {
+    
+});
 
 router.post("/backend/admin/menu", middleware, (req, res) => {
     const name: string | undefined = req.body.name;

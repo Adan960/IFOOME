@@ -57,6 +57,7 @@ router.post("/backend/orders", middleware, async (req: any, res: any) => {
     let prices: number[] = [];
     const deliveryDate: string = req.body.deliveryDate;
     const orderItems: orderItems[] = req.body.orderItems;
+    const paymentMethod: string = req.body.paymentMethod;
     const user_id: number = getIdByToken(req);
 
     if(typeof(deliveryDate) != "string" || !isValidDate(deliveryDate)) {
@@ -64,6 +65,10 @@ router.post("/backend/orders", middleware, async (req: any, res: any) => {
     }
 
     if(typeof(orderItems) != "object" || orderItems.length == 0) {
+        return res.sendStatus(400);
+    }
+
+    if(typeof(paymentMethod) != "string") {
         return res.sendStatus(400);
     }
 
@@ -93,8 +98,8 @@ router.post("/backend/orders", middleware, async (req: any, res: any) => {
         totalPrice += products[index].price * quantity;
     }
 
-    database('INSERT INTO orders (state, delivery_date, user_id, total_price) VALUES($1, $2, $3, $4) RETURNING id;',
-        ["pendente", new Date(deliveryDate), user_id, totalPrice]
+    database('INSERT INTO orders (state, delivery_date, user_id, total_price, payment_method) VALUES($1, $2, $3, $4, $5) RETURNING id;',
+        ["pendente", new Date(deliveryDate), user_id, totalPrice, paymentMethod]
     ).then((data) => {
         for(let i = 0; i < orderItems.length; i++) {
             database('INSERT INTO order_items (order_id, product_name, quantity, unit_price) VALUES($1, $2, $3, $4)',

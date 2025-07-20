@@ -22,7 +22,8 @@ beforeAll(async () => {
 
     await database(`DELETE FROM orders WHERE user_id = $1;`, [user_id]);
     await database(`DELETE FROM users WHERE email = $1;`, [email]);
-    await database('INSERT INTO users(email, password, role) VALUES($1, $2, $3) RETURNING id;',[email, passwordHash, 0])
+    await database('INSERT INTO users(name, email, password, role) VALUES($1, $2, $3, $4) RETURNING id;',
+        ["teste", email, passwordHash, 0])
     .then(data => {
         user_id = data.rows[0].id;
         token = jwt.sign({id: user_id, role: 0}, jwtSecret);
@@ -62,6 +63,7 @@ describe("Fazer um pedido",() => {
     test("Deve fazer um pedido com sucesso",() => {
         return request.post("/backend/orders").set('Authorization', `Bearer ${token}`).send({
         "deliveryDate": today,
+        "paymentMethod": "dinheiro",
         "orderItems": [
             {
                 "productName": "brigadeiro",
@@ -86,6 +88,7 @@ describe("Fazer um pedido",() => {
     test("Deve retornar um erro pelo nome do produto estar errado",() => {
         return request.post("/backend/orders").set('Authorization', `Bearer ${token}`).send({
             "deliveryDate": today,
+            "paymentMethod": "dinheiro",
             "orderItems": [
                 {
                     "productName": "teste023",
@@ -110,6 +113,7 @@ describe("Fazer um pedido",() => {
     test("Deve retornar um erro pela data ser inválida",() => {
         return request.post("/backend/orders").set('Authorization', `Bearer ${token}`).send({
         "deliveryDate": "2025",
+        "paymentMethod": "dinheiro",
         "orderItems": [
             {
                 "productName": "brigadeiro",

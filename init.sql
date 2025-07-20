@@ -1,5 +1,6 @@
 CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
+    name VARCHAR(60) NOT NULL,
     email VARCHAR(100) NOT NULL UNIQUE,
     password VARCHAR(60) NOT NULL,
     role INT NOT NULL
@@ -25,6 +26,7 @@ CREATE TABLE IF NOT EXISTS orders (
     delivery_date DATE NOT NULL,
     user_id INT NOT NULL,
     total_price INT NOT NULL,
+    payment_method VARCHAR(30) NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
