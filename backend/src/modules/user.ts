@@ -98,7 +98,8 @@ router.post("/backend/orders", middleware, async (req: any, res: any) => {
         totalPrice += products[index].price * quantity;
     }
 
-    database('INSERT INTO orders (state, delivery_date, user_id, total_price, payment_method) VALUES($1, $2, $3, $4, $5) RETURNING id;',
+    database(
+        'INSERT INTO orders (state, delivery_date, user_id, total_price, payment_method) VALUES($1, $2, $3, $4, $5) RETURNING id;',
         ["pendente", new Date(deliveryDate).toISOString().split('T')[0], user_id, totalPrice, paymentMethod]
     ).then((data) => {
         for(let i = 0; i < orderItems.length; i++) {

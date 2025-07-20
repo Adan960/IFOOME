@@ -68,9 +68,25 @@ router.get("/backend/admin/orders/today", middleware, async (_: any, res: any) =
     }
 });
 
-router.put("/backend/admin/orders", middleware, (req, res) => {
-    
+router.put("/backend/admin/orders/state", middleware, (req, res) => {
+    const id: number = req.body.id;
+    const state: string = req.body.state;
+
+    if(typeof(id) == "number" && typeof(state) == "string") {
+        database(
+                'UPDATE orders SET state = $1 WHERE id = $2',
+                [state, id]
+            ).then(() => {
+                res.sendStatus(200);
+            }).catch(err => {
+                console.log(err);
+                res.sendStatus(500);
+        });
+    } else {
+        res.sendStatus(400);
+    }
 });
+
 
 router.post("/backend/admin/menu", middleware, (req, res) => {
     const name: string | undefined = req.body.name;

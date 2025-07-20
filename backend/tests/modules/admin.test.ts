@@ -11,6 +11,7 @@ const jwtSecret: string = process.env.JWT_SECRET || "";
 let token: string;
 let user_id: number;
 let role: number;
+let order_id: number;
 
 function fail(reason?: string) {
     throw new Error(reason);
@@ -21,6 +22,13 @@ beforeAll(async () => {
         user_id = data.rows[0].id;
         role = data.rows[0].role;
         token = jwt.sign({id: user_id, role: role}, jwtSecret);
+    });
+
+    await database(
+        `INSERT INTO orders (state, delivery_date, user_id, total_price, payment_method) VALUES($1, $2, $3, $4, $5) RETURNING id;`,
+        ["pendente", new Date().toISOString().split('T')[0], user_id, 200, "dinheiro"]
+    ).then((data: any) => {
+        order_id = data.rows[0].id;
     });
 
     database(
@@ -121,6 +129,19 @@ describe("Visualizar pedidos do dia",() => {
     })
 });
 
+describe("Atualizar status de pedidos",() => {
+    test("Deve alterar o status do pedido com sucesso", () => {
+        return request.put("/backend/admin/orders/state").set('Authorization', `Bearer ${token}`).send({
+            "id": Number(order_id),
+            "state": "concluido"
+        }).then((res: any) => {
+            expect(res.statusCode).toEqual(200);
+        }).catch((err: any) => {
+            fail(err);
+        });
+    });
+});
+
 describe("Adicionar produto no cardápio", () => {
     test("Deve adicionar um produto com sucesso",() => {
         return request.post("/backend/admin/menu").set('Authorization', `Bearer ${token}`).send({
@@ -201,6 +222,7 @@ describe("Remover produto do cardápio", () => {
 });
 
 afterAll(async () => {
+    await database(`DELETE FROM orders WHERE id = ${order_id};`);
     dbPool.end()
     redis.quit();
 });
