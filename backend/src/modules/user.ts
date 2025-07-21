@@ -28,7 +28,7 @@ router.get("/backend/menu", middleware, async (_,res) => {
 router.get("/backend/orders", middleware, async (req: any, res: any) => {
     try {
         const user_id: number = getIdByToken(req);
-        const head = await database(`SELECT * FROM orders WHERE user_id = ${user_id};`);
+        const head: DBres = await database(`SELECT * FROM orders WHERE user_id = ${user_id};`);
         
         if (head.rows.length == 0) {
             return res.sendStatus(204);
@@ -149,15 +149,15 @@ async function updateRedis(): Promise<void> {
 }
 
 function isValidDate(dateString: string): boolean {
-    const date = new Date(dateString);
-    const thisDate = new Date();
-    const thisYear = thisDate.getFullYear();
+    const date: Date = new Date(dateString);
+    const thisDate: Date = new Date();
 
-    if(isNaN(date.getTime()) || parseInt(dateString.split("-")[0]) != thisYear || dateString.length < 10) {
-        return false
-    } else {
-        return true
-    }
+    if(isNaN(date.getTime()) || date.getFullYear() != thisDate.getFullYear() || dateString.length < 10) return false
+    if(date < thisDate) return false
+    if(date.getDay() < 1) return false
+    if(thisDate.getHours() <= 10 && date == thisDate) return false
+
+    return true;
 }
 
 function getIdByToken(req: any): number {

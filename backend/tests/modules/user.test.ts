@@ -57,12 +57,19 @@ describe("cardápio de usuáio",() => {
 })
 
 describe("Fazer um pedido",() => {
-    const today =  new Date();
-    today.setHours(0, 0, 0, 0);
+    const date = new Date();
+    const validDate = new Date(date);
+    validDate.setHours(0, 0, 0, 0);
+
+    if(date.getDay() <= 1) {
+        validDate.setDate(validDate.getDate() + 2);
+    } else {
+        validDate.setDate(validDate.getDate() + 1);
+    }
     
     test("Deve fazer um pedido com sucesso",() => {
         return request.post("/backend/orders").set('Authorization', `Bearer ${token}`).send({
-        "deliveryDate": today,
+        "deliveryDate": validDate,
         "paymentMethod": "dinheiro",
         "orderItems": [
             {
@@ -87,7 +94,7 @@ describe("Fazer um pedido",() => {
 
     test("Deve retornar um erro pelo nome do produto estar errado",() => {
         return request.post("/backend/orders").set('Authorization', `Bearer ${token}`).send({
-            "deliveryDate": today,
+            "deliveryDate": validDate,
             "paymentMethod": "dinheiro",
             "orderItems": [
                 {

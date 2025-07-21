@@ -91,7 +91,9 @@ describe("Deletar avaliações", () => {
 
 describe("Visualizar pedidos do dia",() => {
     test("Deve retornar todos os pedidos do dia com sucesso",() => {
-        return request.get("/backend/admin/orders/today").set('Authorization', `Bearer ${token}`).then(async (res: any) => {
+        return request.get("/backend/admin/orders").set('Authorization', `Bearer ${token}`).send({
+            day: new Date()
+        }).then(async (res: any) => {
             try{
                 const today = new Date();
                 const todayString = today.toISOString().split('T')[0];
@@ -140,6 +142,27 @@ describe("Atualizar status de pedidos",() => {
             fail(err);
         });
     });
+
+    test("Deve retornar erro pelo id não ser um número", () => {
+        return request.put("/backend/admin/orders/state").set('Authorization', `Bearer ${token}`).send({
+            "id": "10",
+            "state": "concluido"
+        }).then((res: any) => {
+            expect(res.statusCode).toEqual(400);
+        }).catch((err: any) => {
+            fail(err);
+        });
+    });
+
+    test("Deve retornar erro por não ter state", () => {
+        return request.put("/backend/admin/orders/state").set('Authorization', `Bearer ${token}`).send({
+            "id": Number(order_id)
+        }).then((res: any) => {
+            expect(res.statusCode).toEqual(400);
+        }).catch((err: any) => {
+            fail(err);
+        });
+    })
 });
 
 describe("Adicionar produto no cardápio", () => {

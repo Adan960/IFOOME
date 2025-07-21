@@ -29,13 +29,13 @@ router.delete("/backend/admin/review", middleware, (req, res) => {
     }
 });
 
-router.get("/backend/admin/orders/today", middleware, async (_: any, res: any) => { 
+router.get("/backend/admin/orders", middleware, async (req: any, res: any) => { 
     try {
-        const today = new Date();
-        const todayString = today.toISOString().split('T')[0];
+        const date = new Date(req.body.day);
+        const day = date.toISOString().split('T')[0];
         const orders = await database(
             `SELECT id, state, total_price, user_id, payment_method FROM orders WHERE delivery_date::date = $1::date;`,
-            [todayString]
+            [day]
         );
         
         if (orders.rows.length === 0) {
@@ -86,7 +86,6 @@ router.put("/backend/admin/orders/state", middleware, (req, res) => {
         res.sendStatus(400);
     }
 });
-
 
 router.post("/backend/admin/menu", middleware, (req, res) => {
     const name: string | undefined = req.body.name;
@@ -163,5 +162,5 @@ function updateRedis(httpStatus: number, res: any): void {
         res.sendStatus(500);
     })
 }
-
+  
 export default router;
