@@ -30,9 +30,7 @@ router.get("/backend/orders", middleware, async (req: any, res: any) => {
         const user_id: number = getIdByToken(req);
         const head: DBres = await database(`SELECT * FROM orders WHERE user_id = ${user_id};`);
         
-        if (head.rows.length == 0) {
-            return res.sendStatus(204);
-        }
+        if (head.rows.length == 0) return res.sendStatus(204);
 
         const promises = head.rows.map(async (row: any, i: number) => {
             const body = await database(`SELECT * FROM order_items WHERE order_id = ${row.id};`);
@@ -48,73 +46,6 @@ router.get("/backend/orders", middleware, async (req: any, res: any) => {
         console.log(err);
         res.sendStatus(500);
     }
-});
-
-router.post("/backend/orders", middleware, async (req: any, res: any) => {
-    let products: any = await redis.get('products');
-    let totalPrice: number = 0;
-    let validNames: string[] = [];
-    let prices: number[] = [];
-    const deliveryDate: string = req.body.deliveryDate;
-    const orderItems: orderItems[] = req.body.orderItems;
-    const paymentMethod: string = req.body.paymentMethod;
-    const user_id: number = getIdByToken(req);
-
-    if(typeof(deliveryDate) != "string" || !isValidDate(deliveryDate)) {
-        return res.sendStatus(400);
-    }
-
-    if(typeof(orderItems) != "object" || orderItems.length == 0) {
-        return res.sendStatus(400);
-    }
-
-    if(typeof(paymentMethod) != "string") {
-        return res.sendStatus(400);
-    }
-
-    if(products == null) {
-        await updateRedis();
-        products = await redis.get('products');
-    }
-
-    if(products == null) {
-        return res.sendStatus(204);
-    }
-
-    products = JSON.parse(products);
-    
-    for(let i = 0; i < products.length; i++) {
-        validNames.push(products[i].name);
-    }
-    for(let i = 0; i < orderItems.length; i++) {
-        const productName: string = orderItems[i].productName;
-        const quantity: number = orderItems[i].quantity;
-        const index: number = validNames.indexOf(productName);
-        
-        if(typeof(quantity) != "number" || quantity <= 0 || index == -1) {
-            return res.sendStatus(400);
-        }
-        prices.push(products[index].price);
-        totalPrice += products[index].price * quantity;
-    }
-
-    database(
-        'INSERT INTO orders (state, delivery_date, user_id, total_price, payment_method) VALUES($1, $2, $3, $4, $5) RETURNING id;',
-        ["pendente", new Date(deliveryDate).toISOString().split('T')[0], user_id, totalPrice, paymentMethod]
-    ).then((data) => {
-        for(let i = 0; i < orderItems.length; i++) {
-            database('INSERT INTO order_items (order_id, product_name, quantity, unit_price) VALUES($1, $2, $3, $4)',
-                [data.rows[0].id, orderItems[i].productName, orderItems[i].quantity, prices[i]]
-            ).catch(err => {
-                console.log(err);
-                return res.sendStatus(500);
-            });
-        }
-        res.sendStatus(201);
-    }).catch(err => {
-        console.log(err);
-        res.sendStatus(500);
-    });
 });
 
 router.post("/backend/review", middleware, (req, res) => {
@@ -135,10 +66,6 @@ router.post("/backend/review", middleware, (req, res) => {
 
 
 interface DBres {rows: object[]}
-interface orderItems {
-    productName: string,
-    quantity: number
-}
 
 async function updateRedis(): Promise<void> {
     await database('SELECT * FROM products;').then(async (data: DBres) => { 
@@ -146,18 +73,6 @@ async function updateRedis(): Promise<void> {
     }).catch((err: any) => {
         console.log(err);
     });
-}
-
-function isValidDate(dateString: string): boolean {
-    const date: Date = new Date(dateString);
-    const thisDate: Date = new Date();
-
-    if(isNaN(date.getTime()) || date.getFullYear() != thisDate.getFullYear() || dateString.length < 10) return false
-    if(date < thisDate) return false
-    if(date.getDay() < 1) return false
-    if(thisDate.getHours() <= 10 && date == thisDate) return false
-
-    return true;
 }
 
 function getIdByToken(req: any): number {

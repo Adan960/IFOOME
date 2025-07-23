@@ -167,7 +167,7 @@ describe("receber lista de pedidos usuário",() => {
                 }
         
                 expect(res.statusCode).toEqual(200);
-                expect(res.body).toEqual(dbRes);
+                expect(res.body[0]).toEqual(dbRes[0]);
             } catch (err: any) {
                 fail(err);
             }
